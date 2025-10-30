@@ -31,7 +31,7 @@ const repos = [
 
 function HomePage() {
   return (
-    <section className="w-full min-h-screen bg-zinc-950 p-6 flex flex-col items-center gap-6">
+    <section className="main w-full min-h-screen bg-zinc-950 p-6 flex flex-col items-center gap-6">
       {repos.map((repo, index) => (
         <RepoCard key={index} repo={repo} />
       ))}
