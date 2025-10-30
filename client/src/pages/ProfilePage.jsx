@@ -8,14 +8,14 @@ import { useNavigate } from "react-router-dom";
 
 function ProfilePage({ user }) {
   const navigate = useNavigate()
-  const repos = [
+  const repoPosts = [
     {
       title: "ByteList UI Kit",
       description: "A modern UI component library built with React and Shadcn.",
       tags: ["react", "ui", "tailwind"],
       githubUrl: "https://github.com/example/bytelist-ui",
       liveUrl: "https://bytelist.vercel.app",
-      user: user.username,
+      user: user?.username,
     },
     {
       title: "Minimal Blog Platform",
@@ -23,7 +23,7 @@ function ProfilePage({ user }) {
       tags: ["nextjs", "markdown"],
       githubUrl: "https://github.com/example/blog",
       liveUrl: "",
-      user: user.username,
+      user: user?.username,
     },
   ];
 
@@ -41,24 +41,24 @@ function ProfilePage({ user }) {
       <Card className="w-full max-w-2xl bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 text-center">
         <CardContent className="flex flex-col items-center gap-3">
           <img
-            src={user.avatar}
-            alt={user.username}
+            src={user?.avatar || "images/default-male.jpg"}
+            alt={user?.username}
             className="h-20 w-20 rounded-full border border-zinc-700 object-cover"
           />
-          <h2 className="text-xl text-white font-semibold">{user.username}</h2>
-          <p className="text-sm text-zinc-400">{user.bio}</p>
+          <h2 className="text-xl text-white font-semibold">{user?.username}</h2>
+          <p className="text-sm text-zinc-400">{user?.bio}</p>
 
           <div className="flex justify-center gap-8 mt-3 text-zinc-400 text-sm">
             <div>
-              <span className="font-semibold text-zinc-100">{user.stats.posts}</span>{" "}
+              <span className="font-semibold text-zinc-100">{user?.stats?.posts}</span>{" "}
               Posts
             </div>
             <div>
-              <span className="font-semibold text-zinc-100">{user.stats.likes}</span>{" "}
+              <span className="font-semibold text-zinc-100">{user?.stats?.likes}</span>{" "}
               Likes
             </div>
             <div>
-              <span className="font-semibold text-zinc-100">{user.stats.saved}</span>{" "}
+              <span className="font-semibold text-zinc-100">{user?.stats?.saved}</span>{" "}
               Saved
             </div>
           </div>
@@ -85,8 +85,8 @@ function ProfilePage({ user }) {
 
       {/* USER'S PROJECTS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
-        {repos.map((repo, idx) => (
-          <RepoCard key={idx} repo={repo} />
+        {repoPosts.map((repo, idx) => (
+          <RepoCard key={idx} repoPost={repo} />
         ))}
       </div>
     </section>

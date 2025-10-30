@@ -7,26 +7,30 @@ import RepoPostCreate from "./pages/RepoPostCreate";
 import AuthPage from "./pages/AuthPage";
 import { useEffect, useState } from "react";
 
-import { verifyUser } from "./context/useAuth";
+import { verifyUser,logoutUser } from "./context/useAuth";
 
-const user = {
-  username: "@akhil",
-  bio: "Full-stack developer passionate about building minimal UIs.",
-  avatar:
-    "https://images.unsplash.com/photo-1602471615287-d733c59b79c4?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1171",
-  stats: {
-    posts: 12,
-    likes: 340,
-    saved: 27,
-  },
-};
+
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
   useEffect(() => {
-    verifyUser()
-      .then(() => setIsLoggedIn(true))
-      .catch(() => setIsLoggedIn(false));
+    const getAuthVerification = async () => {
+      try {
+        const response = await verifyUser();
+        console.log(response);
+         
+        setUser(response.userData);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error("Auth verification failed:", error);
+        setIsLoggedIn(false);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getAuthVerification();
   }, []);
   return (
     <main className="w-full h-screen bg-zinc-950">
@@ -46,6 +50,6 @@ function App() {
       </div>
     </main>
   );
-};
+}
 
 export default App;

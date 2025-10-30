@@ -8,9 +8,26 @@ import bcrypt from "bcrypt";
 // === MODELS === //
 import User from "../models/User.js";
 
-router.get("/", function (req, res, next) {
-  res.send("respond with a resource");
+router.get("/", async (req, res) => {
+  const token = req.cookies.token;
+  
+  if (!token)
+    return res.status(401).json({ message: "No token found" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+    
+    if (!user)
+      return res.status(404).json({ message: "User not found" });
+    
+    res.status(200).json({ message: "User fetched successfully", user });
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ message: "Invalid token or server error" });
+  }
 });
+
 
 router.post("/create-user", async (req, res) => {
   const { username, email, password } = req.body;
@@ -88,14 +105,15 @@ router.post("/logout", (req, res) => {
 });
 
 // VERIFY route - check if user is authenticated
-router.get("/verify", (req, res) => {
+router.get("/verify", async(req, res) => {
   const token = req.cookies.token;
   if (!token)
     return res.status(401).json({ message: "No token found" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    res.status(200).json({ message: "Token valid", userId: decoded.userId });
+    const userData = await User.findById({_id:decoded.userId})
+    res.status(200).json({ message: "Token valid", userId: decoded.userId ,userData:userData});
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });
   }

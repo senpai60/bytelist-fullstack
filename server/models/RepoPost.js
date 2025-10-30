@@ -23,11 +23,13 @@ const repoPostsSchema = mongoose.Schema(
       type: [String],
       default: [],
     },
-    imageUrl: {
+    likes: { type: [mongoose.Schema.Types.ObjectId], ref: "User",default:[] },
+    dislike: { type: [mongoose.Schema.Types.ObjectId], ref: "User",default:[] },
+    image: {
       type: String,
       match: /^https?:\/\//,
     },
-    repoUrl: {
+    githubUrl: {
       type: String,
       required: true,
       match: /^https?:\/\//,

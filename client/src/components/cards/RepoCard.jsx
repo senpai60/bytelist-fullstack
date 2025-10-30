@@ -22,14 +22,14 @@ import {
   ThumbsDown,
 } from "lucide-react";
 
-function RepoCard({ repo = {} }) {
+function RepoCard({ repoPost}) {
   return (
     <Card className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md transition-all hover:shadow-zinc-800/40 hover:-translate-y-1">
       {/* IMAGE */}
       <div className="h-40 w-full overflow-hidden bg-zinc-900">
         <img
-          src={repo.image || "/images/default-repo.jpg"}
-          alt={repo.title || "Project image"}
+          src={repoPost?.image || "images/default-male.jpg"}
+          alt={repoPost?.title || "Project image"}
           className="h-full w-full object-cover opacity-90 hover:opacity-100 transition-opacity"
         />
       </div>
@@ -39,28 +39,28 @@ function RepoCard({ repo = {} }) {
         {/* USER INFO */}
         <div className="flex items-center gap-3 mb-2">
           <img
-            src={repo.user?.avatar || "/images/default-avatar.png"}
-            alt={repo.user?.username || "User"}
+            src={repoPost?.user?.avatar || "/images/default-avatar.png"}
+            alt={repoPost?.user?.username || "User"}
             className="h-8 w-8 rounded-full border border-zinc-700 object-cover"
           />
           <span className="text-sm text-zinc-300 font-medium">
-            {repo.user?.username || "Anonymous"}
+            {repoPost?.user?.username || "Anonymous"}
           </span>
         </div>
 
         {/* TITLE + DESCRIPTION */}
         <CardTitle className="text-lg font-semibold text-zinc-100 line-clamp-1">
-          {repo.title || "Untitled Project"}
+          {repoPost?.title || "Untitled Project"}
         </CardTitle>
         <CardDescription className="text-sm text-zinc-400 line-clamp-2">
-          {repo.description || "No description provided."}
+          {repoPost?.description || "No description provided."}
         </CardDescription>
       </CardHeader>
 
       {/* TAGS */}
       <CardContent>
         <div className="flex flex-wrap gap-2">
-          {repo.tags?.map((tag) => (
+          {repoPost?.tags?.map((tag) => (
             <Badge
               key={tag}
               variant="secondary"
@@ -76,12 +76,12 @@ function RepoCard({ repo = {} }) {
       <CardFooter className="flex items-center justify-between border-t border-zinc-800 pt-3">
         <div className="flex items-center gap-3">
           {/* GITHUB LINK */}
-          {repo.githubUrl && (
+          {repoPost?.githubUrl && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <a
-                    href={repo.githubUrl}
+                    href={repoPost?.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -102,12 +102,12 @@ function RepoCard({ repo = {} }) {
           )}
 
           {/* LIVE LINK */}
-          {repo.liveUrl && (
+          {repoPost?.liveUrl && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <a
-                    href={repo.liveUrl}
+                    href={repoPost?.liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
