@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import { Plus, Github, Globe } from "lucide-react";
-// Import useNavigate if you want to redirect after success
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import repoPostApi from "../api/repoPostApi";
 
@@ -24,6 +23,8 @@ export default function RepoPostCreate({ user }) {
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,22 +54,27 @@ export default function RepoPostCreate({ user }) {
 
     try {
       const response = await repoPostApi.post("/create-repo-post", {
-        user:user?._id,
-        title:formData.title,
-        description:formData.description,
-        imageUrl:formData.imageUrl,
-        githubUrl:formData.githubUrl,
-        liveUrl:formData.liveUrl,
-      })
-        
+        user: user?._id,
+        username:user?.username,
+        title: formData.title,
+        description: formData.description,
+        image: formData.imageUrl,
+        githubUrl: formData.githubUrl,
+        liveUrl: formData.liveUrl,
+        tags: tags,
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit post.");
+      if (response.status === 201) {
+        const result = response.data.newRepoPost;
+        console.log("Success:", result);
+        navigate("/");
+      } else {
+        throw new Error(response.data?.message || "Failed to submit post.");
       }
 
-      const result = await response.json();
+      const result = response.data.newPost;
       console.log("Success:", result);
+      navigate("/");
       // On success, you could redirect: navigate(`/post/${result.data._id}`);
     } catch (err) {
       setError(err.message);

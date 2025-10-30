@@ -1,8 +1,6 @@
-
-import { useEffect, useState } from 'react';
-import RepoCard from '../components/cards/RepoCard'
-import repoPostApi from '../api/repoPostApi';
-
+import { useEffect, useState } from "react";
+import RepoCard from "../components/cards/RepoCard";
+import repoPostApi from "../api/repoPostApi";
 
 // const repos = [
 //   {
@@ -31,27 +29,30 @@ import repoPostApi from '../api/repoPostApi';
 //   },
 // ];
 
-
 function HomePage() {
-  const [repoPosts, setRepoPosts] = useState([])
-  useEffect(()=>{
+  const [repoPosts, setRepoPosts] = useState([]);
+  useEffect(() => {
     const fetchAllRepos = async () => {
       try {
-        const response = await repoPostApi.get("/all-repo-posts")
-        if(response?.data?.repoPosts) setRepoPosts(response.data.repoPosts)
+        const response = await repoPostApi.get("/all-repo-posts");
+        if (response?.data?.repoPosts) {
+          setRepoPosts(response.data.repoPosts);
+          
+        }
+        console.log(response.data.repoPosts);
       } catch (err) {
-        console.error(err)
+        console.error(err);
       }
-    }
-    fetchAllRepos()
-  },[])
+    };
+    fetchAllRepos();
+  }, []);
   return (
     <section className="main w-full min-h-screen bg-zinc-950 p-6 flex flex-col items-center gap-6">
-      {repoPosts.map((repoPost, index) => (
-        <RepoCard key={repoPost._id} repoPosts={repoPosts} />
+      {repoPosts.map((repoPost) => (
+        <RepoCard key={repoPost._id} repoPost={repoPost} />
       ))}
     </section>
   );
 }
 
-export default HomePage
+export default HomePage;

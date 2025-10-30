@@ -24,7 +24,7 @@ import {
 
 function RepoCard({ repoPost}) {
   return (
-    <Card className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md transition-all hover:shadow-zinc-800/40 hover:-translate-y-1">
+    <Card className="overflow-hidden w-90 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md transition-all hover:shadow-zinc-800/40 hover:-translate-y-1">
       {/* IMAGE */}
       <div className="h-40 w-full overflow-hidden bg-zinc-900">
         <img
@@ -44,7 +44,7 @@ function RepoCard({ repoPost}) {
             className="h-8 w-8 rounded-full border border-zinc-700 object-cover"
           />
           <span className="text-sm text-zinc-300 font-medium">
-            {repoPost?.user?.username || "Anonymous"}
+            {repoPost?.username || "Anonymous"}
           </span>
         </div>
 
