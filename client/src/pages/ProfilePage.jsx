@@ -3,29 +3,38 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import RepoCard from "@/components/cards/RepoCard";
 
+import { logoutUser,verifyUser } from "../context/useAuth";
+import { useNavigate } from "react-router-dom";
 
-
-
-
-function ProfilePage({user}) {
+function ProfilePage({ user }) {
+  const navigate = useNavigate()
   const repos = [
-  {
-    title: "ByteList UI Kit",
-    description: "A modern UI component library built with React and Shadcn.",
-    tags: ["react", "ui", "tailwind"],
-    githubUrl: "https://github.com/example/bytelist-ui",
-    liveUrl: "https://bytelist.vercel.app",
-    user: user.username,
-  },
-  {
-    title: "Minimal Blog Platform",
-    description: "A lightweight blogging system with markdown support.",
-    tags: ["nextjs", "markdown"],
-    githubUrl: "https://github.com/example/blog",
-    liveUrl: "",
-    user: user.username,
-  },
-];
+    {
+      title: "ByteList UI Kit",
+      description: "A modern UI component library built with React and Shadcn.",
+      tags: ["react", "ui", "tailwind"],
+      githubUrl: "https://github.com/example/bytelist-ui",
+      liveUrl: "https://bytelist.vercel.app",
+      user: user.username,
+    },
+    {
+      title: "Minimal Blog Platform",
+      description: "A lightweight blogging system with markdown support.",
+      tags: ["nextjs", "markdown"],
+      githubUrl: "https://github.com/example/blog",
+      liveUrl: "",
+      user: user.username,
+    },
+  ];
+
+  const handleLogout = async(e) => {
+    e.preventDefault()
+    await logoutUser()
+    await verifyUser()
+    navigate("/")
+    // 🧠 Later: clear tokens, redirect to /auth/login
+  };
+
   return (
     <section className="min-h-screen w-full bg-zinc-950 text-zinc-100 p-6 flex flex-col items-center">
       {/* PROFILE HEADER */}
@@ -54,12 +63,21 @@ function ProfilePage({user}) {
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            className="mt-4 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
-          >
-            Edit Profile
-          </Button>
+          {/* Buttons */}
+          <div className="flex flex-col gap-2 mt-4 w-full max-w-[200px]">
+            <Button
+              variant="outline"
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
+            >
+              Edit Profile
+            </Button>
+            <Button
+              onClick={(e)=>{handleLogout(e)}}
+              className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-colors"
+            >
+              Logout
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

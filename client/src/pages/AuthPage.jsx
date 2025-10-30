@@ -1,11 +1,13 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Github, Mail } from "lucide-react";
 
-export default function AuthPage() {
+import { loginUser, registerUser,verifyUser } from "../context/useAuth";
+
+export default function AuthPage({ isLoggedIn }) {
   const { mode } = useParams(); // "login" or "signup"
   const isLogin = mode === "login";
 
@@ -15,14 +17,31 @@ export default function AuthPage() {
     password: "",
   });
 
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(`${isLogin ? "Logging in" : "Signing up"} with:`, form);
     // 🧠 Add your API call here (e.g. axios.post(`/api/auth/${mode}`, form))
+
+    try {
+      let response;
+      if(isLogin) {
+        response =  await loginUser(form.email,form.password)
+      }
+      else{
+        response = await registerUser(form.username,form.email,form.password)
+      }
+      const verified =  await verifyUser()
+      if(verified?.userId)
+        navigate("/profile")
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleOAuth = (provider) => {
@@ -45,10 +64,17 @@ export default function AuthPage() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form
+            onSubmit={(e) => {
+              handleSubmit(e);
+            }}
+            className="flex flex-col gap-4"
+          >
             {!isLogin && (
               <div>
-                <label className="text-sm text-zinc-400 mb-1 block">Username</label>
+                <label className="text-sm text-zinc-400 mb-1 block">
+                  Username
+                </label>
                 <Input
                   type="text"
                   name="username"
@@ -73,7 +99,9 @@ export default function AuthPage() {
             </div>
 
             <div>
-              <label className="text-sm text-zinc-400 mb-1 block">Password</label>
+              <label className="text-sm text-zinc-400 mb-1 block">
+                Password
+              </label>
               <Input
                 type="password"
                 name="password"

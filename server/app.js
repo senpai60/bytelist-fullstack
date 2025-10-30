@@ -5,7 +5,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import { fileURLToPath } from 'url';
-
+import cors from "cors"
 import indexRouter from './routes/index.js';
 
 import connectDB from './utils/db.js';
@@ -19,6 +19,21 @@ const app = express();
 
 connectDB()
 
+
+// === CORS === //
+const whitelist = ["http://localhost:5173"]
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+    credentials:true,
+}
+
+app.use(cors(corsOptions))
 
 app.use(logger('dev'));
 app.use(express.json());
