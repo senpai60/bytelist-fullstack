@@ -21,19 +21,26 @@ connectDB()
 
 
 // === CORS === //
-const whitelist = ["http://localhost:5173","https://bytelist-client.vercel.app/"]
+const whitelist = [
+  "http://localhost:5173",
+  "https://bytelist-client.vercel.app"
+];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
+    // Allow requests without origin (like Postman or server-to-server)
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'))
+      console.log("❌ Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
     }
   },
-    credentials:true,
-}
+  credentials: true,
+};
 
-app.use(cors(corsOptions))
+app.use(cors(corsOptions));
+
 
 app.use(logger('dev'));
 app.use(express.json());
