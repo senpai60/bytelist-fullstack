@@ -29,7 +29,7 @@ import repoPostApi from "../api/repoPostApi";
 //   },
 // ];
 
-function HomePage() {
+function HomePage({user}) {
   const [repoPosts, setRepoPosts] = useState([]);
   useEffect(() => {
     const fetchAllRepos = async () => {
@@ -49,7 +49,7 @@ function HomePage() {
   return (
     <section className="main w-full min-h-screen bg-zinc-950 p-6 flex flex-col items-center gap-6">
       {repoPosts.map((repoPost) => (
-        <RepoCard key={repoPost._id} repoPost={repoPost} />
+        <RepoCard key={repoPost._id} user={user} repoPost={repoPost} />
       ))}
     </section>
   );

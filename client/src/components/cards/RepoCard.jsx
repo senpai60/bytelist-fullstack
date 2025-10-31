@@ -1,30 +1,108 @@
+import { useState, useEffect } from "react";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
+  Card, CardHeader, CardTitle, CardDescription,
+  CardContent, CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  BookmarkIcon,
-  ExternalLink,
-  Globe,
-  ThumbsUp,
-  ThumbsDown,
+  BookmarkIcon, BookmarkCheck, ExternalLink,
+  Globe, ThumbsUp, ThumbsDown, Loader2,
 } from "lucide-react";
+import card_InteractionApi from "../../api/card_InteractionApi";
 
-function RepoCard({ repoPost}) {
+function RepoCard({ repoPost, user }) {
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isArchived, setIsArchived] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [archivedPosts, setArchivedPosts] = useState([]);
+
+  // 🔹 Like / Dislike state
+  const [likes, setLikes] = useState(repoPost?.likes || 0);
+  const [dislikes, setDislikes] = useState(repoPost?.dislikes || 0);
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
+
+  // 🔹 Fetch archived posts when component mounts
+  useEffect(() => {
+    async function fetchArchived() {
+      try {
+        const res = await card_InteractionApi.get("/archived", { withCredentials: true });
+        const ids = res.data.archivedPosts.map(a => a.archivedPost[0]._id);
+        setArchivedPosts(ids);
+
+        if (ids.includes(repoPost._id)) {
+          setIsArchived(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    if (user?._id) fetchArchived();
+  }, [user, repoPost._id]);
+
+  // 🔹 Handle archive toggle
+  const handleArchived = async (e) => {
+    e.preventDefault();
+    if (!user?._id) return setErrorMessage("Please log in to save posts.");
+
+    try {
+      setIsLoading(true);
+      const response = await card_InteractionApi.post("/save-to-archive", {
+        user: user?._id,
+        author: repoPost?.user?._id,
+        repoPost: repoPost?._id,
+      });
+
+      if (response?.data?.message === "Post archived") {
+        setIsArchived(true);
+      } else if (response?.data?.message === "Removed from archive!") {
+        setIsArchived(false);
+      }
+
+      setErrorMessage("");
+    } catch (err) {
+      setErrorMessage(err?.message || "Something went wrong while saving.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 🔹 Handle like/dislike logic (frontend only for now)
+  const handleLike = () => {
+    if (liked) {
+      setLikes(likes - 1);
+      setLiked(false);
+    } else {
+      setLikes(likes + 1);
+      if (disliked) {
+        setDislikes(dislikes - 1);
+        setDisliked(false);
+      }
+      setLiked(true);
+    }
+  };
+
+  const handleDislike = () => {
+    if (disliked) {
+      setDislikes(dislikes - 1);
+      setDisliked(false);
+    } else {
+      setDislikes(dislikes + 1);
+      if (liked) {
+        setLikes(likes - 1);
+        setLiked(false);
+      }
+      setDisliked(true);
+    }
+  };
+
   return (
-    <Card className="overflow-hidden w-90 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md transition-all hover:shadow-zinc-800/40 hover:-translate-y-1">
+    <Card className="overflow-hidden w-80 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md transition-all hover:shadow-zinc-800/40 hover:-translate-y-1">
       {/* IMAGE */}
       <div className="h-40 w-full overflow-hidden bg-zinc-900">
         <img
@@ -34,9 +112,7 @@ function RepoCard({ repoPost}) {
         />
       </div>
 
-      {/* CONTENT */}
       <CardHeader>
-        {/* USER INFO */}
         <div className="flex items-center gap-3 mb-2">
           <img
             src={repoPost?.user?.avatar || "/images/default-avatar.png"}
@@ -44,11 +120,9 @@ function RepoCard({ repoPost}) {
             className="h-8 w-8 rounded-full border border-zinc-700 object-cover"
           />
           <span className="text-sm text-zinc-300 font-medium">
-            {repoPost?.username || "Anonymous"}
+            {repoPost?.user?.username || "Anonymous"}
           </span>
         </div>
-
-        {/* TITLE + DESCRIPTION */}
         <CardTitle className="text-lg font-semibold text-zinc-100 line-clamp-1">
           {repoPost?.title || "Untitled Project"}
         </CardTitle>
@@ -57,7 +131,6 @@ function RepoCard({ repoPost}) {
         </CardDescription>
       </CardHeader>
 
-      {/* TAGS */}
       <CardContent>
         <div className="flex flex-wrap gap-2">
           {repoPost?.tags?.map((tag) => (
@@ -75,21 +148,13 @@ function RepoCard({ repoPost}) {
       {/* FOOTER */}
       <CardFooter className="flex items-center justify-between border-t border-zinc-800 pt-3">
         <div className="flex items-center gap-3">
-          {/* GITHUB LINK */}
+          {/* 🔗 GITHUB */}
           {repoPost?.githubUrl && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <a
-                    href={repoPost?.githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
-                    >
+                  <a href={repoPost.githubUrl} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800">
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </a>
@@ -101,21 +166,13 @@ function RepoCard({ repoPost}) {
             </TooltipProvider>
           )}
 
-          {/* LIVE LINK */}
+          {/* 🌍 LIVE */}
           {repoPost?.liveUrl && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <a
-                    href={repoPost?.liveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
-                    >
+                  <a href={repoPost.liveUrl} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800">
                       <Globe className="h-4 w-4" />
                     </Button>
                   </a>
@@ -127,33 +184,57 @@ function RepoCard({ repoPost}) {
             </TooltipProvider>
           )}
 
-          {/* LIKE / DISLIKE */}
+          {/* 👍 LIKE */}
           <Button
+            onClick={handleLike}
             variant="ghost"
             size="icon"
-            className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+            className={`hover:bg-zinc-800 ${
+              liked ? "text-emerald-400" : "text-zinc-400 hover:text-zinc-100"
+            }`}
           >
             <ThumbsUp className="h-4 w-4" />
+            <span className="text-xs ml-1">{likes}</span>
           </Button>
+
+          {/* 👎 DISLIKE */}
           <Button
+            onClick={handleDislike}
             variant="ghost"
             size="icon"
-            className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+            className={`hover:bg-zinc-800 ${
+              disliked ? "text-red-400" : "text-zinc-400 hover:text-zinc-100"
+            }`}
           >
             <ThumbsDown className="h-4 w-4" />
+            <span className="text-xs ml-1">{dislikes}</span>
           </Button>
         </div>
 
-        {/* SAVE */}
+        {/* 🏷️ SAVE BUTTON */}
         <Button
+          onClick={handleArchived}
           variant="outline"
           size="sm"
-          className="flex items-center gap-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
+          disabled={isLoading}
+          className={`flex items-center gap-1 border-zinc-700 transition-all ${
+            isArchived
+              ? "bg-emerald-600 text-white hover:bg-emerald-700"
+              : "bg-transparent text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
+          }`}
         >
-          <BookmarkIcon className="h-4 w-4" />
-          Save
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : isArchived ? (
+            <BookmarkCheck className="h-4 w-4" />
+          ) : (
+            <BookmarkIcon className="h-4 w-4" />
+          )}
+          {isArchived ? "Saved" : "Save"}
         </Button>
       </CardFooter>
+
+      {errorMessage && <p className="text-sm text-red-400 p-3">{errorMessage}</p>}
     </Card>
   );
 }

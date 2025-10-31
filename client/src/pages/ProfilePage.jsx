@@ -45,7 +45,7 @@ function ProfilePage({ user }) {
             alt={user?.username}
             className="h-20 w-20 rounded-full border border-zinc-700 object-cover"
           />
-          <h2 className="text-xl text-white font-semibold">{user?.username}</h2>
+          <h2 className="text-xl text-white font-semibold">{user?.id}</h2>
           <p className="text-sm text-zinc-400">{user?.bio}</p>
 
           <div className="flex justify-center gap-8 mt-3 text-zinc-400 text-sm">
