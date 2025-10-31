@@ -1,18 +1,31 @@
 import { useState, useEffect } from "react";
 import {
-  Card, CardHeader, CardTitle, CardDescription,
-  CardContent, CardFooter,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  BookmarkIcon, BookmarkCheck, ExternalLink,
-  Globe, ThumbsUp, ThumbsDown, Loader2,
+  BookmarkIcon,
+  BookmarkCheck,
+  ExternalLink,
+  Globe,
+  ThumbsUp,
+  ThumbsDown,
+  Loader2,
 } from "lucide-react";
 import card_InteractionApi from "../../api/card_InteractionApi";
+import { useNavigate } from "react-router-dom";
 
 function RepoCard({ repoPost, user }) {
   const [errorMessage, setErrorMessage] = useState("");
@@ -25,12 +38,15 @@ function RepoCard({ repoPost, user }) {
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
 
+  const navigate = useNavigate();
   // ✅ Fetch archived posts (fixed dependencies + reset behavior)
   useEffect(() => {
     async function fetchArchived() {
       try {
-        const res = await card_InteractionApi.get("/archived", { withCredentials: true });
-        const ids = res.data.archivedPosts.map(a => a.archivedPost[0]._id);
+        const res = await card_InteractionApi.get("/archived", {
+          withCredentials: true,
+        });
+        const ids = res.data.archivedPosts.map((a) => a.archivedPost[0]._id);
         setArchivedPosts(ids);
 
         // Set correct initial archive state
@@ -102,8 +118,31 @@ function RepoCard({ repoPost, user }) {
     }
   };
 
+  // repo page navigation
+  const handleRepoPageNavigation = () => {
+    try {
+      if (!repoPost.githubUrl) return console.error("Missing GitHub URL");
+
+      const url = new URL(repoPost.githubUrl);
+      const pathParts = url.pathname.split("/").filter(Boolean); // removes empty ""
+      const [owner, repo] = pathParts;
+
+      if (!owner || !repo) {
+        console.error("Invalid repo URL structure:", repoPost.githubUrl);
+        return;
+      }
+
+      navigate(`/repo/${owner}/${repo}`);
+    } catch (err) {
+      console.error("Invalid GitHub URL:", err);
+    }
+  };
+
   return (
-    <Card className="overflow-hidden w-80 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md transition-all hover:shadow-zinc-800/40 hover:-translate-y-1">
+    <Card
+      onClick={handleRepoPageNavigation}
+      className="overflow-hidden w-80 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md transition-all hover:shadow-zinc-800/40 hover:-translate-y-1"
+    >
       {/* IMAGE */}
       <div className="h-40 w-full overflow-hidden bg-zinc-900">
         <img
@@ -153,8 +192,16 @@ function RepoCard({ repoPost, user }) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <a href={repoPost.githubUrl} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800">
+                  <a
+                    href={repoPost.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+                    >
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </a>
@@ -171,8 +218,16 @@ function RepoCard({ repoPost, user }) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <a href={repoPost.liveUrl} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800">
+                  <a
+                    href={repoPost.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+                    >
                       <Globe className="h-4 w-4" />
                     </Button>
                   </a>
@@ -189,7 +244,9 @@ function RepoCard({ repoPost, user }) {
             onClick={handleLike}
             variant="ghost"
             size="icon"
-            className={`hover:bg-zinc-800 ${liked ? "text-emerald-400" : "text-zinc-400 hover:text-zinc-100"}`}
+            className={`hover:bg-zinc-800 ${
+              liked ? "text-emerald-400" : "text-zinc-400 hover:text-zinc-100"
+            }`}
           >
             <ThumbsUp className="h-4 w-4" />
             <span className="text-xs ml-1">{likes}</span>
@@ -200,7 +257,9 @@ function RepoCard({ repoPost, user }) {
             onClick={handleDislike}
             variant="ghost"
             size="icon"
-            className={`hover:bg-zinc-800 ${disliked ? "text-red-400" : "text-zinc-400 hover:text-zinc-100"}`}
+            className={`hover:bg-zinc-800 ${
+              disliked ? "text-red-400" : "text-zinc-400 hover:text-zinc-100"
+            }`}
           >
             <ThumbsDown className="h-4 w-4" />
             <span className="text-xs ml-1">{dislikes}</span>
@@ -230,7 +289,9 @@ function RepoCard({ repoPost, user }) {
         </Button>
       </CardFooter>
 
-      {errorMessage && <p className="text-sm text-red-400 p-3">{errorMessage}</p>}
+      {errorMessage && (
+        <p className="text-sm text-red-400 p-3">{errorMessage}</p>
+      )}
     </Card>
   );
 }
