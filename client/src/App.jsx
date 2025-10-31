@@ -8,10 +8,13 @@ import AuthPage from "./pages/AuthPage";
 import ArchivePage from "./pages/ArchivePage";
 import SettingsPage from "./pages/SettingsPage";
 import RepoInfo from "./pages/RepoInfo";
+import PlaylistPage from "./pages/PlaylistPage";
+
 
 import { useEffect, useState } from "react";
 
 import { verifyUser, logoutUser } from "./context/useAuth";
+import ViewPlaylistPage from "./pages/ViewPlaylistPage";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -53,6 +56,9 @@ function App() {
           <Route path="/archive" element={<ArchivePage user={user} />} />
           <Route path="/settings" element={<SettingsPage user={user} />} />
           <Route path="/repo/:owner/:repo" element={<RepoInfo />} />
+          <Route path="/playlists" element={<PlaylistPage />} />
+          <Route path="/view-playlist/:playlistId" element={<ViewPlaylistPage/>} />
+
         </Routes>
       </div>
     </main>

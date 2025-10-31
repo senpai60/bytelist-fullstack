@@ -39,7 +39,8 @@ function RepoCard({ repoPost, user }) {
   const [disliked, setDisliked] = useState(false);
 
   const navigate = useNavigate();
-  // ✅ Fetch archived posts (fixed dependencies + reset behavior)
+
+  // ✅ Fetch archived posts
   useEffect(() => {
     async function fetchArchived() {
       try {
@@ -49,22 +50,17 @@ function RepoCard({ repoPost, user }) {
         const ids = res.data.archivedPosts.map((a) => a.archivedPost[0]._id);
         setArchivedPosts(ids);
 
-        // Set correct initial archive state
-        if (ids.includes(repoPost._id)) {
-          setIsArchived(true);
-        } else {
-          setIsArchived(false);
-        }
+        setIsArchived(ids.includes(repoPost._id));
       } catch (err) {
         console.error(err);
       }
     }
 
     if (user?._id) fetchArchived();
-  }, [user?._id, repoPost._id]); // ✅ ensure it runs when user or post changes
+  }, [user?._id, repoPost._id]);
 
   const handleArchived = async (e) => {
-    e.preventDefault();
+    e.stopPropagation(); // 🧱 Stop navigation
     if (!user?._id) return setErrorMessage("Please log in to save posts.");
 
     try {
@@ -90,7 +86,8 @@ function RepoCard({ repoPost, user }) {
     }
   };
 
-  const handleLike = () => {
+  const handleLike = (e) => {
+    e.stopPropagation();
     if (liked) {
       setLikes(likes - 1);
       setLiked(false);
@@ -104,7 +101,8 @@ function RepoCard({ repoPost, user }) {
     }
   };
 
-  const handleDislike = () => {
+  const handleDislike = (e) => {
+    e.stopPropagation();
     if (disliked) {
       setDislikes(dislikes - 1);
       setDisliked(false);
@@ -118,17 +116,16 @@ function RepoCard({ repoPost, user }) {
     }
   };
 
-  // repo page navigation
   const handleRepoPageNavigation = () => {
     try {
       if (!repoPost.githubUrl) return console.error("Missing GitHub URL");
 
       const url = new URL(repoPost.githubUrl);
-      const pathParts = url.pathname.split("/").filter(Boolean); // removes empty ""
+      const pathParts = url.pathname.split("/").filter(Boolean);
       const [owner, repo] = pathParts;
 
       if (!owner || !repo) {
-        console.error("Invalid repo URL structure:", repoPost.githubUrl);
+        console.error("Invalid repo URL:", repoPost.githubUrl);
         return;
       }
 
@@ -141,7 +138,7 @@ function RepoCard({ repoPost, user }) {
   return (
     <Card
       onClick={handleRepoPageNavigation}
-      className="overflow-hidden w-80 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md transition-all hover:shadow-zinc-800/40 hover:-translate-y-1"
+      className="overflow-hidden w-80 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md transition-all hover:shadow-zinc-800/40 hover:-translate-y-1 cursor-pointer"
     >
       {/* IMAGE */}
       <div className="h-40 w-full overflow-hidden bg-zinc-900">
@@ -196,6 +193,7 @@ function RepoCard({ repoPost, user }) {
                     href={repoPost.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()} // 🧱 stop nav
                   >
                     <Button
                       variant="ghost"
@@ -222,6 +220,7 @@ function RepoCard({ repoPost, user }) {
                     href={repoPost.liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()} // 🧱 stop nav
                   >
                     <Button
                       variant="ghost"

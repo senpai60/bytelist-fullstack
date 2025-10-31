@@ -21,7 +21,7 @@ const navLinks = [
 
 function NavBar({ isLoggedIn }) {
   const rightLinks = [
-    { link: "/mypage", linkIcon: <BookOpen /> },
+    { link: "/playlists", linkIcon: <BookOpen /> },
     { link: "/settings", linkIcon: <Settings /> },
     {
       link: `${isLoggedIn ? "/profile" : "/auth/:signup"}`,
