@@ -21,7 +21,7 @@ connectDB()
 
 
 // === CORS === //
-const whitelist = ["http://localhost:5173"]
+const whitelist = ["http://localhost:5173","https://bytelist-client.vercel.app/"]
 const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
