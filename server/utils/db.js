@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const DB = process.env.MONGOD_URI;
+const DB = process.env.MONGODB_URI;
 
 const options = {
   useNewUrlParser: true,
