@@ -5,10 +5,12 @@ import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import RepoPostCreate from "./pages/RepoPostCreate";
 import AuthPage from "./pages/AuthPage";
+import ArchivePage from "./pages/ArchivePage";
+import SettingsPage from "./pages/SettingsPage";
+
 import { useEffect, useState } from "react";
 
 import { verifyUser,logoutUser } from "./context/useAuth";
-
 
 
 function App() {
@@ -48,6 +50,9 @@ function App() {
             element={<RepoPostCreate user={user} />}
           />
           <Route path="/auth/:mode" element={<AuthPage />} />
+          <Route path="/archive" element={<ArchivePage user={user} />} />
+          <Route path="/settings" element={<SettingsPage user={user} />} />
+
         </Routes>
       </div>
     </main>
