@@ -20,13 +20,12 @@ function RepoCard({ repoPost, user }) {
   const [isLoading, setIsLoading] = useState(false);
   const [archivedPosts, setArchivedPosts] = useState([]);
 
-  // 🔹 Like / Dislike state
   const [likes, setLikes] = useState(repoPost?.likes || 0);
   const [dislikes, setDislikes] = useState(repoPost?.dislikes || 0);
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
 
-  // 🔹 Fetch archived posts when component mounts
+  // ✅ Fetch archived posts (fixed dependencies + reset behavior)
   useEffect(() => {
     async function fetchArchived() {
       try {
@@ -34,17 +33,20 @@ function RepoCard({ repoPost, user }) {
         const ids = res.data.archivedPosts.map(a => a.archivedPost[0]._id);
         setArchivedPosts(ids);
 
+        // Set correct initial archive state
         if (ids.includes(repoPost._id)) {
           setIsArchived(true);
+        } else {
+          setIsArchived(false);
         }
       } catch (err) {
         console.error(err);
       }
     }
-    if (user?._id) fetchArchived();
-  }, [user, repoPost._id]);
 
-  // 🔹 Handle archive toggle
+    if (user?._id) fetchArchived();
+  }, [user?._id, repoPost._id]); // ✅ ensure it runs when user or post changes
+
   const handleArchived = async (e) => {
     e.preventDefault();
     if (!user?._id) return setErrorMessage("Please log in to save posts.");
@@ -72,7 +74,6 @@ function RepoCard({ repoPost, user }) {
     }
   };
 
-  // 🔹 Handle like/dislike logic (frontend only for now)
   const handleLike = () => {
     if (liked) {
       setLikes(likes - 1);
@@ -145,7 +146,6 @@ function RepoCard({ repoPost, user }) {
         </div>
       </CardContent>
 
-      {/* FOOTER */}
       <CardFooter className="flex items-center justify-between border-t border-zinc-800 pt-3">
         <div className="flex items-center gap-3">
           {/* 🔗 GITHUB */}
@@ -189,9 +189,7 @@ function RepoCard({ repoPost, user }) {
             onClick={handleLike}
             variant="ghost"
             size="icon"
-            className={`hover:bg-zinc-800 ${
-              liked ? "text-emerald-400" : "text-zinc-400 hover:text-zinc-100"
-            }`}
+            className={`hover:bg-zinc-800 ${liked ? "text-emerald-400" : "text-zinc-400 hover:text-zinc-100"}`}
           >
             <ThumbsUp className="h-4 w-4" />
             <span className="text-xs ml-1">{likes}</span>
@@ -202,9 +200,7 @@ function RepoCard({ repoPost, user }) {
             onClick={handleDislike}
             variant="ghost"
             size="icon"
-            className={`hover:bg-zinc-800 ${
-              disliked ? "text-red-400" : "text-zinc-400 hover:text-zinc-100"
-            }`}
+            className={`hover:bg-zinc-800 ${disliked ? "text-red-400" : "text-zinc-400 hover:text-zinc-100"}`}
           >
             <ThumbsDown className="h-4 w-4" />
             <span className="text-xs ml-1">{dislikes}</span>
