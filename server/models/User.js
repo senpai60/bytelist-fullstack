@@ -28,6 +28,12 @@ const COVER_LIST = [
 
 const userSchema = new mongoose.Schema(
   {
+    githubId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
     username: {
       type: String,
       required: [true, "Username is required"],
@@ -38,14 +44,10 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
       unique: true,
+      sparse: true, // allows for null/optional
       trim: true,
       lowercase: true,
-    },
-    password: {
-      type: String,
-      required: [true, "Password is required"],
     },
     bio: {
       type: String,
@@ -77,36 +79,18 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
     stats: {
-      posts: {
-        type: Number,
-        default: 0,
-      },
-      likes: {
-        type: Number,
-        default: 0,
-      },
-      saved: {
-        type: Number,
-        default: 0,
-      },
+      posts: { type: Number, default: 0 },
+      likes: { type: Number, default: 0 },
+      saved: { type: Number, default: 0 },
     },
     posts: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: postModelRef,
-      },
+      { type: mongoose.Schema.Types.ObjectId, ref: postModelRef },
     ],
     likedPosts: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "RepoPost",
-      },
+      { type: mongoose.Schema.Types.ObjectId, ref: "RepoPost" },
     ],
     savedPosts: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: postModelRef,
-      },
+      { type: mongoose.Schema.Types.ObjectId, ref: postModelRef },
     ],
   },
   {

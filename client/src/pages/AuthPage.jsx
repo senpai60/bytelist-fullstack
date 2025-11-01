@@ -1,170 +1,98 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Github, Mail } from "lucide-react";
-import { loginUser, registerUser, verifyUser, sendOtp } from "../context/useAuth";
+import { Github } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function AuthPage() {
-  const { mode } = useParams();
-  const isLogin = mode === "login";
-  const navigate = useNavigate();
-
-  const [form, setForm] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (isLogin) {
-        await loginUser(form.email, form.password);
-        const verified = await verifyUser();
-        if (verified?.userId) navigate("/profile");
-      } else {
-        await sendOtp(form.email);
-        setOtpSent(true);
-        alert("OTP sent to your email!");
-      }
-    } catch (err) {
-      console.error("❌ Auth Error:", err.message || err);
-      alert(err.message || "Something went wrong!");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp) return alert("Please enter the OTP!");
-    try {
-      await registerUser(form.username, form.email, form.password, otp);
-      const verified = await verifyUser();
-      if (verified?.userId) {
-        alert("Signup successful!");
-        navigate("/profile");
-      }
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "OTP verification failed");
-    }
+  const handleGithubLogin = () => {
+    window.location.href = "http://localhost:3000/users/github";
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-100 px-4">
-      <Card className="w-full max-w-md bg-zinc-900/60 border border-zinc-800 rounded-2xl shadow-lg backdrop-blur-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-semibold text-white">
-            {isLogin ? "Welcome Back 👋" : otpSent ? "Verify Your Email ✉️" : "Create Account 🚀"}
-          </CardTitle>
-          {!otpSent && (
-            <p className="text-sm text-zinc-400 mt-1">
-              {isLogin
-                ? "Log in to continue exploring projects."
-                : "Sign up to share your work and connect with devs."}
-            </p>
-          )}
-        </CardHeader>
+    <section className="relative min-h-screen flex items-center justify-center bg-zinc-950 overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0">
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-tr from-zinc-800 via-zinc-900 to-black opacity-70"
+          animate={{
+            backgroundPosition: ["0% 0%", "100% 100%"],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            repeatType: "reverse",
+          }}
+          style={{
+            backgroundSize: "200% 200%",
+          }}
+        />
+      </div>
 
-        <CardContent>
-          {!otpSent ? (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {!isLogin && (
-                <div>
-                  <label className="text-sm text-zinc-400 mb-1 block">Username</label>
-                  <Input
-                    type="text"
-                    name="username"
-                    value={form.username}
-                    onChange={handleChange}
-                    placeholder="Enter username"
-                    className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-                    required
-                  />
-                </div>
-              )}
+      {/* Floating light particles (subtle animation) */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(25)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute bg-white/5 rounded-full blur-sm"
+            style={{
+              width: Math.random() * 6 + 2,
+              height: Math.random() * 6 + 2,
+              top: Math.random() * 100 + "%",
+              left: Math.random() * 100 + "%",
+            }}
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.1, 0.5, 0.1],
+            }}
+            transition={{
+              duration: Math.random() * 4 + 2,
+              repeat: Infinity,
+              delay: Math.random() * 3,
+            }}
+          />
+        ))}
+      </div>
 
-              <div>
-                <label className="text-sm text-zinc-400 mb-1 block">Email</label>
-                <Input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="Enter email"
-                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-                  required
-                />
-              </div>
+      {/* Main card */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-10 w-[90%] sm:w-[400px] bg-zinc-900/60 border border-zinc-800 rounded-2xl p-8 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-lg text-center"
+      >
+        <motion.h2
+          className="text-3xl font-bold text-white mb-4"
+          animate={{
+            textShadow: [
+              "0 0 8px #ffffff55",
+              "0 0 16px #ffffff22",
+              "0 0 8px #ffffff55",
+            ],
+          }}
+          transition={{ duration: 3, repeat: Infinity }}
+        >
+          Welcome to ByteList
+        </motion.h2>
 
-              <div>
-                <label className="text-sm text-zinc-400 mb-1 block">Password</label>
-                <Input
-                  type="password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="Enter password"
-                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-                  required
-                />
-              </div>
+        <p className="text-zinc-400 mb-8">
+          Connect with GitHub to explore, post, and share repositories.
+        </p>
 
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-xl transition-all"
-              >
-                {loading ? "Please wait..." : isLogin ? "Login" : "Send OTP"}
-              </Button>
-            </form>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <p className="text-sm text-center text-zinc-400">
-                Enter the OTP sent to <strong>{form.email}</strong>
-              </p>
-              <Input
-                type="text"
-                name="otp"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="Enter OTP"
-                className="bg-zinc-800 border-zinc-700 text-zinc-100 text-center tracking-widest placeholder:text-zinc-500"
-                required
-              />
-              <Button
-                onClick={handleVerifyOtp}
-                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl"
-              >
-                Verify OTP & Register
-              </Button>
-            </div>
-          )}
+        <Button
+          onClick={handleGithubLogin}
+          className="w-full flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white text-lg transition-all duration-300 hover:scale-[1.02]"
+        >
+          <Github className="w-5 h-5" /> Login with GitHub
+        </Button>
 
-          {!otpSent && (
-            <p className="text-sm text-center mt-4 text-zinc-500">
-              {isLogin ? "Don’t have an account? " : "Already have an account? "}
-              <Link
-                to={isLogin ? "/auth/signup" : "/auth/login"}
-                className="text-zinc-300 hover:text-white font-medium"
-              >
-                {isLogin ? "Sign up" : "Login"}
-              </Link>
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        {/* Loading ring animation below button */}
+        <motion.div
+          className="mt-8 flex justify-center"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+        >
+          <div className="w-12 h-12 border-4 border-zinc-700 border-t-white rounded-full"></div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
