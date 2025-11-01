@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import PrimaryLoader from "../components/loaders/PrimaryLoader";
 
 function ViewPlaylistPage() {
   const { playlistId } = useParams(); // future API use
@@ -56,7 +57,7 @@ function ViewPlaylistPage() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-zinc-300">
         <Loader2 className="h-6 w-6 animate-spin mr-2" />
-        Loading Playlist...
+        <PrimaryLoader/>
       </div>
     );
 

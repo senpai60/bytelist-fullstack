@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import PrimaryLoader from "../components/loaders/PrimaryLoader";
 
 // 🎨 GitHub Official Language Colors (remains the same)
 const languageColors = {
@@ -120,7 +121,7 @@ export default function RepoInfo() {
     return (
       <div className="flex items-center justify-center min-h-[80vh] text-zinc-400 gap-2">
         <Loader2 className="animate-spin" size={20} />
-        Loading repository details...
+        <PrimaryLoader/>
       </div>
     );
 

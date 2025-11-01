@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import repoPostApi from "../api/repoPostApi";
 import { Github, Linkedin, Twitter, Edit2 } from "lucide-react"; // ✅ Import icons
+import PrimaryLoader from "../components/loaders/PrimaryLoader";
 
 function ProfilePage({ user: initialUser }) {
   // ✅ Use state for user, so it can be updated after editing
@@ -65,7 +66,7 @@ function ProfilePage({ user: initialUser }) {
     // Handle loading or user-not-found state, maybe redirect
     return (
       <section className="min-h-screen w-full bg-zinc-950 text-zinc-100 p-6 flex items-center justify-center">
-        <p>Loading user profile...</p>
+        <PrimaryLoader/>
       </section>
     );
   }

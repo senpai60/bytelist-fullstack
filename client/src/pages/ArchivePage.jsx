@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import RepoCard from "@/components/cards/RepoCard";
 import card_InteractionApi from "../api/card_InteractionApi";
+import PrimaryLoader from "../components/loaders/PrimaryLoader";
 
 function ArchivePage({ user }) {
   const [archivedPosts, setArchivedPosts] = useState([]);
@@ -27,7 +28,7 @@ function ArchivePage({ user }) {
   if (loading) {
     return (
       <section className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-400">
-        <p>Loading saved posts...</p>
+        <PrimaryLoader/>
       </section>
     );
   }

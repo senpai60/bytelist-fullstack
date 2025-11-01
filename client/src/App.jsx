@@ -13,6 +13,7 @@ import ViewPlaylistPage from "./pages/ViewPlaylistPage";
 
 import { useEffect, useState } from "react";
 import { verifyUser, logoutUser } from "./context/useAuth";
+import PrimaryLoader from "./components/loaders/PrimaryLoader";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -44,7 +45,7 @@ function App() {
   if (loadingApp) {
     return (
       <div className="w-full h-screen bg-zinc-950 flex items-center justify-center text-white">
-        Loading...
+        <PrimaryLoader/>
       </div>
     );
   }

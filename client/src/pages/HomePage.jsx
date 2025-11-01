@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import RepoCard from "../components/cards/RepoCard";
 import repoPostApi from "../api/repoPostApi";
 import { Loader2 } from "lucide-react";
+import PrimaryLoader from "../components/loaders/PrimaryLoader";
 
 function HomePage({ user }) {
   const [repoPosts, setRepoPosts] = useState([]);
@@ -38,7 +39,7 @@ function HomePage({ user }) {
       {/* Loading State */}
       {loading ? (
         <div className="flex items-center justify-center h-[60vh]">
-          <Loader2 className="animate-spin text-zinc-400" size={32} />
+          <PrimaryLoader/>
         </div>
       ) : repoPosts.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[60vh] text-zinc-400">
