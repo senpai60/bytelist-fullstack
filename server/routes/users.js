@@ -1,49 +1,40 @@
 import express from "express";
 const router = express.Router();
 
-// ===PACKAGES=== //
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 
-// === MODELS === //
 import User from "../models/User.js";
 import OTP from "../models/OTP.js";
 
-// Configure nodemailer
+// --- SENDGRID-NODEMAILER CONFIG (production safe) ---
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.sendgrid.net",
+  port: 587,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
+    user: "apikey", // literally the word "apikey"
+    pass: process.env.SENDGRID_API_KEY, // set this in your .env
   },
 });
 
 // === SEND OTP === //
 router.post("/send-otp", async (req, res) => {
   const { email } = req.body;
-
   if (!email) return res.status(400).json({ message: "Email is required" });
 
   try {
-    // Generate 6-digit OTP
     const otp = crypto.randomInt(100000, 999999).toString();
-
-    // Delete any existing OTP for this email
     await OTP.deleteOne({ email });
-
-    // Save new OTP
     await OTP.create({ email, otp });
-
-    // Send email
+    // Use your verified sender!
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: process.env.EMAIL_USER, // must be same as verified sender on SendGrid, e.g. "byte.list.hub@gmail.com"
       to: email,
       subject: "Email Verification OTP",
       html: `<h2>Your OTP is: <strong>${otp}</strong></h2><p>Valid for 5 minutes</p>`,
     });
-
     res.status(200).json({ message: "OTP sent successfully" });
   } catch (err) {
     console.error(err);
@@ -54,19 +45,14 @@ router.post("/send-otp", async (req, res) => {
 // === VERIFY OTP === //
 router.post("/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
-
   if (!email || !otp)
     return res.status(400).json({ message: "Email and OTP required" });
 
   try {
     const otpRecord = await OTP.findOne({ email, otp });
-
     if (!otpRecord)
       return res.status(400).json({ message: "Invalid or expired OTP" });
-
-    // Delete used OTP
     await OTP.deleteOne({ _id: otpRecord._id });
-
     res.status(200).json({ message: "OTP verified successfully" });
   } catch (err) {
     console.error(err);
@@ -77,19 +63,17 @@ router.post("/verify-otp", async (req, res) => {
 // === CREATE USER (Modified with OTP) === //
 router.post("/create-user", async (req, res) => {
   const { username, email, password, otp } = req.body;
-
   if (!username || !email || !password || !otp)
     return res.status(400).json({ message: "Please fill all the fields" });
 
   try {
-    // Verify OTP first
     const otpRecord = await OTP.findOne({ email, otp });
     if (!otpRecord)
       return res.status(400).json({ message: "Invalid or expired OTP" });
 
     const existingUser = await User.findOne({ email });
     if (existingUser)
-      return res.status(402).json({ message: "User already exists!!" });
+      return res.status(409).json({ message: "User already exists!!" }); // 409=conflict
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
@@ -98,9 +82,7 @@ router.post("/create-user", async (req, res) => {
       password: hashedPassword,
     });
 
-    // Delete used OTP
     await OTP.deleteOne({ _id: otpRecord._id });
-
     const userId = newUser._id;
     const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
       expiresIn: "7d",
@@ -108,8 +90,8 @@ router.post("/create-user", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // Render uses HTTPS, keep true
-      sameSite: "none", // Must be exactly lowercase "none"
+      secure: true,
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -121,16 +103,14 @@ router.post("/create-user", async (req, res) => {
   }
 });
 
-// Your existing routes...
+// === USER FETCH === //
 router.get("/", async (req, res) => {
   const token = req.cookies.token;
-
   if (!token) return res.status(401).json({ message: "No token found" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId);
-
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.status(200).json({ message: "User fetched successfully", user });
@@ -140,6 +120,7 @@ router.get("/", async (req, res) => {
   }
 });
 
+// === LOGIN === //
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -159,8 +140,8 @@ router.post("/login", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // Render uses HTTPS, keep true
-      sameSite: "none", // Must be exactly lowercase "none"
+      secure: true,
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -168,12 +149,13 @@ router.post("/login", async (req, res) => {
     res
       .status(200)
       .json({ message: "Logged in successfully", userId: user._id });
-  } catch (err){
+  } catch (err) {
     console.error(err);
     res.status(501).json({ message: "Server error please try again later!" });
   }
 });
 
+// === LOGOUT === //
 router.post("/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
@@ -184,6 +166,7 @@ router.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
+// === VERIFY TOKEN === //
 router.get("/verify", async (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ message: "No token found" });
@@ -192,7 +175,7 @@ router.get("/verify", async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userData = await User.findById({ _id: decoded.userId }).select(
       "-password"
-    ); // Exclude password
+    );
     res.status(200).json({
       message: "Token valid",
       userId: decoded.userId,
@@ -203,9 +186,7 @@ router.get("/verify", async (req, res) => {
   }
 });
 
-// ===============================================
-// ✅ NEW ROUTE TO UPDATE PROFILE
-// ===============================================
+// === UPDATE PROFILE === //
 router.put("/update-profile", async (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ message: "Not authenticated" });
@@ -224,7 +205,6 @@ router.put("/update-profile", async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
 
-    // Check if new username is already taken by someone else
     if (username) {
       const existingUser = await User.findOne({
         username,
@@ -248,11 +228,11 @@ router.put("/update-profile", async (req, res) => {
           twitter,
         },
       },
-      { new: true, runValidators: true } // Return the updated document and run schema validators
-    ).select("-password"); // Exclude password from the returned object
+      { new: true, runValidators: true }
+    ).select("-password");
 
     if (!updatedUser) {
-      return res.status(44).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     res
@@ -263,8 +243,5 @@ router.put("/update-profile", async (req, res) => {
     res.status(500).json({ message: "Server error updating profile" });
   }
 });
-// ===============================================
-// ✅ END OF NEW ROUTE
-// ===============================================
 
 export default router;
