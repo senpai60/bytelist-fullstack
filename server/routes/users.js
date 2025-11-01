@@ -84,4 +84,53 @@ router.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
+router.put("/update-profile", async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ message: "Not authenticated. Please log in." });
+  }
+
+  try {
+    // 1. Verify the token to get the user's ID
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    // 2. Get the new profile data from the request body
+    const { username, bio, avatar, coverPhoto, github, linkedin, twitter } = req.body;
+
+    // 3. Find the user by their ID and update their information
+    // { new: true } tells Mongoose to return the *updated* user document
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        username,
+        bio,
+        avatar,
+        coverPhoto,
+        github,
+        linkedin,
+        twitter,
+      },
+      { new: true, runValidators: true } // runValidators checks things like bio maxLength
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 4. Send the fresh, updated user data back to the client
+    res.status(200).json({ message: "Profile updated successfully!", user: updatedUser });
+
+  } catch (err) {
+    console.error("Profile update error:", err);
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    if (err.name === 'ValidationError') {
+        return res.status(400).json({ message: err.message });
+    }
+    res.status(500).json({ message: "Server error during profile update" });
+  }
+});
+
 export default router;
