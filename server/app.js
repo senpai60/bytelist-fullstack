@@ -28,7 +28,6 @@ const whitelist = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests without origin (like Postman or server-to-server)
     if (!origin || whitelist.includes(origin)) {
       callback(null, true);
     } else {
@@ -37,7 +36,10 @@ const corsOptions = {
     }
   },
   credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 };
+
 
 app.use(cors(corsOptions));
 

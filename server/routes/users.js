@@ -24,8 +24,7 @@ const transporter = nodemailer.createTransport({
 router.post("/send-otp", async (req, res) => {
   const { email } = req.body;
 
-  if (!email)
-    return res.status(400).json({ message: "Email is required" });
+  if (!email) return res.status(400).json({ message: "Email is required" });
 
   try {
     // Generate 6-digit OTP
@@ -109,35 +108,30 @@ router.post("/create-user", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV === "production", // only HTTPS in prod
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/",
     });
 
     res.status(201).json({ message: "User registered successfully!", userId });
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({ message: "Server error please try again later!" });
+    res.status(500).json({ message: "Server error please try again later!" });
   }
 });
 
 // Your existing routes...
 router.get("/", async (req, res) => {
   const token = req.cookies.token;
-  
-  if (!token)
-    return res.status(401).json({ message: "No token found" });
+
+  if (!token) return res.status(401).json({ message: "No token found" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId);
-    
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
-    
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     res.status(200).json({ message: "User fetched successfully", user });
   } catch (err) {
     console.error(err);
@@ -152,8 +146,7 @@ router.post("/login", async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid)
@@ -165,13 +158,14 @@ router.post("/login", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV === "production", // only HTTPS in prod
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/"
     });
 
-    res.status(200).json({ message: "Logged in successfully", userId: user._id });
+    res
+      .status(200)
+      .json({ message: "Logged in successfully", userId: user._id });
   } catch (err) {
     console.error(err);
     res.status(501).json({ message: "Server error please try again later!" });
@@ -183,15 +177,18 @@ router.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-router.get("/verify", async(req, res) => {
+router.get("/verify", async (req, res) => {
   const token = req.cookies.token;
-  if (!token)
-    return res.status(401).json({ message: "No token found" });
+  if (!token) return res.status(401).json({ message: "No token found" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userData = await User.findById({_id: decoded.userId});
-    res.status(200).json({ message: "Token valid", userId: decoded.userId, userData: userData });
+    const userData = await User.findById({ _id: decoded.userId });
+    res.status(200).json({
+      message: "Token valid",
+      userId: decoded.userId,
+      userData: userData,
+    });
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });
   }
