@@ -106,14 +106,13 @@ router.post("/create-user", async (req, res) => {
       expiresIn: "7d",
     });
 
-   res.cookie("token", token, {
-  httpOnly: true,
-  secure: true, // Render uses HTTPS, keep true
-  sameSite: "none", // Must be exactly lowercase "none"
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: "/",
-});
-
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true, // Render uses HTTPS, keep true
+      sameSite: "none", // Must be exactly lowercase "none"
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
 
     res.status(201).json({ message: "User registered successfully!", userId });
   } catch (err) {
@@ -169,14 +168,19 @@ router.post("/login", async (req, res) => {
     res
       .status(200)
       .json({ message: "Logged in successfully", userId: user._id });
-  } catch (err) {
+  } catch (err){
     console.error(err);
     res.status(501).json({ message: "Server error please try again later!" });
   }
 });
 
 router.post("/logout", (req, res) => {
-  res.clearCookie("token", { path: "/" });
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: "/",
+  });
   res.status(200).json({ message: "Logged out successfully" });
 });
 
@@ -186,7 +190,9 @@ router.get("/verify", async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userData = await User.findById({ _id: decoded.userId });
+    const userData = await User.findById({ _id: decoded.userId }).select(
+      "-password"
+    ); // Exclude password
     res.status(200).json({
       message: "Token valid",
       userId: decoded.userId,
@@ -196,5 +202,69 @@ router.get("/verify", async (req, res) => {
     res.status(401).json({ message: "Invalid token" });
   }
 });
+
+// ===============================================
+// ✅ NEW ROUTE TO UPDATE PROFILE
+// ===============================================
+router.put("/update-profile", async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ message: "Not authenticated" });
+
+  const {
+    username,
+    bio,
+    avatar,
+    coverPhoto,
+    github,
+    linkedin,
+    twitter,
+  } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    // Check if new username is already taken by someone else
+    if (username) {
+      const existingUser = await User.findOne({
+        username,
+        _id: { $ne: userId },
+      });
+      if (existingUser) {
+        return res.status(400).json({ message: "Username is already taken" });
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          username,
+          bio,
+          avatar,
+          coverPhoto,
+          github,
+          linkedin,
+          twitter,
+        },
+      },
+      { new: true, runValidators: true } // Return the updated document and run schema validators
+    ).select("-password"); // Exclude password from the returned object
+
+    if (!updatedUser) {
+      return res.status(44).json({ message: "User not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (err) {
+    console.error("Profile update error:", err);
+    res.status(500).json({ message: "Server error updating profile" });
+  }
+});
+// ===============================================
+// ✅ END OF NEW ROUTE
+// ===============================================
 
 export default router;

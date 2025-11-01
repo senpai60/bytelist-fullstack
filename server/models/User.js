@@ -27,13 +27,31 @@ const userSchema = new mongoose.Schema(
     },
     bio: {
       type: String,
-      default: "",
+      default: "Welcome to my ByteList profile!",
       maxLength: [150, "Bio cannot be more than 150 characters."],
     },
     avatar: {
       type: String,
-      default: "images/default-male.jpg",
+      default: "https://i.imgur.com/6VBx3io.png", // Default avatar
     },
+    // ✅ NEW FIELDS ADDED
+    coverPhoto: {
+      type: String,
+      default: "https://i.imgur.com/MABM84w.png", // Default cover photo
+    },
+    github: {
+      type: String,
+      default: "",
+    },
+    linkedin: {
+      type: String,
+      default: "",
+    },
+    twitter: {
+      type: String,
+      default: "",
+    },
+    // ------------------
     stats: {
       posts: {
         type: Number,
