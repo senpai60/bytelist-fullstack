@@ -106,12 +106,14 @@ router.post("/create-user", async (req, res) => {
       expiresIn: "7d",
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // only HTTPS in prod
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+   res.cookie("token", token, {
+  httpOnly: true,
+  secure: true, // Render uses HTTPS, keep true
+  sameSite: "none", // Must be exactly lowercase "none"
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: "/",
+});
+
 
     res.status(201).json({ message: "User registered successfully!", userId });
   } catch (err) {
@@ -158,9 +160,10 @@ router.post("/login", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // only HTTPS in prod
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: true, // Render uses HTTPS, keep true
+      sameSite: "none", // Must be exactly lowercase "none"
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
     });
 
     res
