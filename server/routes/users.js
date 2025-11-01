@@ -50,8 +50,8 @@ router.get(
     });
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // set true if using https in prod!
-      sameSite: "lax",
+      secure: true, // ✅ Set to true for HTTPS (Vercel/Render)
+      sameSite: "none", // ✅ Set to "none" for cross-domain
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -77,8 +77,8 @@ router.get("/verify", async (req, res) => {
 router.post("/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: false, // set true in prod
-    sameSite: "lax",
+    secure: true, // ✅ Set to true for HTTPS
+    sameSite: "none", // ✅ Set to "none" for cross-domain
     path: "/",
   });
   res.status(200).json({ message: "Logged out successfully" });
