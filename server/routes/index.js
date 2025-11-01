@@ -23,52 +23,68 @@ router.get("/", function (req, res, next) {
 router.get("/github-repo/:owner/:repo", async (req, res) => {
   const { owner, repo } = req.params;
   
-  // Use the GITHUB_TOKEN from your Render environment variables
   const token = process.env.GITHUB_TOKEN;
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   try {
-    // 1. Fetch Repo, Languages, and Contributors in parallel
-    const [repoRes, langRes, contribStatsRes] = await Promise.all([
-      axios.get(`https://api.github.com/repos/${owner}/${repo}`, { headers }),
+    // 1. Fetch the MAIN repo data first. This is the only one that *must* succeed.
+    const repoRes = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}`,
+      { headers }
+    );
+    
+    // 2. Fetch languages, contributors, and README in parallel.
+    // We use Promise.allSettled so that if one fails, the others don't.
+    const [langRes, contribStatsRes, readmeRes] = await Promise.allSettled([
+      // Request 1: Languages
       axios.get(`https://api.github.com/repos/${owner}/${repo}/languages`, {
         headers,
       }),
+      
+      // Request 2: Contributor Stats
       axios.get(
         `https://api.github.com/repos/${owner}/${repo}/stats/contributors`,
         { headers }
       ),
-    ]);
-
-    // 2. Fetch README with fallback
-    let readmeData = "";
-    try {
-      const resMain = await axios.get(
+      
+      // Request 3: README (with fallback)
+      axios.get(
         `https://raw.githubusercontent.com/${owner}/${repo}/main/README.md`
-      );
-      readmeData = resMain.data;
-    } catch {
-      try {
-        const resMaster = await axios.get(
+      ).catch(() => {
+        // Fallback to "master" branch if "main" fails
+        return axios.get(
           `https://raw.githubusercontent.com/${owner}/${repo}/master/README.md`
         );
-        readmeData = resMaster.data;
-      } catch {
-        readmeData = "No README file found in this repository.";
-      }
-    }
+      }),
+    ]);
 
-    // 3. Send all data back to the client
+    // 3. Check the results and build the response
+    const languages =
+      langRes.status === "fulfilled" ? langRes.value.data : {};
+      
+    const contributors =
+      contribStatsRes.status === "fulfilled" ? contribStatsRes.value.data : [];
+      
+    const readme =
+      readmeRes.status === "fulfilled"
+        ? readmeRes.value.data
+        : "No README file found in this repository.";
+
+    // 4. Send all data back to the client
     res.status(200).json({
       repoData: repoRes.data,
-      languages: langRes.data,
-      contributors: contribStatsRes.data,
-      readme: readmeData,
+      languages: languages,
+      contributors: contributors,
+      readme: readme,
     });
     
   } catch (error) {
-    console.error("GitHub API error:", error.message);
-    res.status(500).json({ message: "Failed to fetch repo data from GitHub" });
+    // This will now only catch if the MAIN repo data request fails
+    console.error("GitHub API error (main repo):", error.message);
+    if (error.response?.status === 404) {
+      return res.status(404).json({ message: "Repository not found" });
+    }
+    res.status(500).json({ message: "Failed to fetch main repo data from GitHub" });
   }
 });
 // =======================================================

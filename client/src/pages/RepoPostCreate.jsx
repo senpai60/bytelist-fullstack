@@ -1,238 +1,223 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
-import { Plus, Github, Globe } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 
 import repoPostApi from "../api/repoPostApi";
 
-export default function RepoPostCreate({ user }) {
-  // const navigate = useNavigate();
+// === Cover Image Options ===
+const COVER_LIST = [
+  "https://images.unsplash.com/photo-1743003902336-8a11c244e28f?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YWxsfGVufDB8MHwwfHx8Mg%3D%3D&auto=format&fit=crop&q=60&w=600",
+  "https://images.unsplash.com/photo-1638521476152-d0a01eaa1207?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGFsbHxlbnwwfDB8MHx8fDI%3D&auto=format&fit=crop&q=60&w=600",
+  "https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dGVjaHxlbnwwfDB8MHx8fDI%3D&auto=format&fit=crop&q=60&w=600",
+  "https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8dGVjaHxlbnwwfDB8MHx8fDI%3D&auto=format&fit=crop&q=60&w=600",
+  "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjN8fHRlY2h8ZW58MHwwfDB8fHwy&auto=format&fit=crop&q=60&w=600",
+  "https://images.unsplash.com/photo-1515343480029-43cdfe6b6aae?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzN8fHRlY2h8ZW58MHwwfDB8fHwy&auto=format&fit=crop&q=60&w=600"
+];
+
+function RepoPostCreate({ user }) {
+  const [githubRepos, setGithubRepos] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    imageUrl: "",
     githubUrl: "",
     liveUrl: "",
+    tags: "",
+    image: "",
   });
-  const [tags, setTags] = useState([]);
-  const [tagInput, setTagInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const navigate = useNavigate();
+  // === Fetch GitHub Repos ===
+  useEffect(() => {
+    const fetchRepos = async () => {
+      try {
+        const res = await axios.get(
+          `https://api.github.com/users/${user.username}/repos`
+        );
+        setGithubRepos(res.data);
+      } catch (error) {
+        console.error("Error fetching repos:", error);
+      }
+    };
+    if (user?.username) fetchRepos();
+  }, [user]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const addTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput)) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput("");
-    }
-  };
-
-  const removeTag = (tagToRemove) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-  };
-
+  // === Submit Form ===
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const postData = { ...formData, tags };
 
     try {
       const response = await repoPostApi.post("/create-repo-post", {
         user: user?._id,
-        username:user?.username,
         title: formData.title,
         description: formData.description,
-        image: formData.imageUrl,
+        tags: formData.tags,
+        image: formData.image,
         githubUrl: formData.githubUrl,
         liveUrl: formData.liveUrl,
-        tags: tags,
       });
-
-      if (response.status === 201) {
-        const result = response.data.newRepoPost;
-        console.log("Success:", result);
-        navigate("/");
-      } else {
-        throw new Error(response.data?.message || "Failed to submit post.");
-      }
-
-      const result = response.data.newPost;
-      console.log("Success:", result);
-      navigate("/");
-      // On success, you could redirect: navigate(`/post/${result.data._id}`);
+      console.log("✅ Repo post created:", response.data);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.error("Error posting repo:", err);
     }
   };
 
   return (
-    <section className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4 py-5">
-      <Card className="w-full max-w-2xl bg-zinc-900/70 border border-zinc-800 rounded-2xl shadow-md">
-        <CardHeader className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10">
-              <AvatarImage src={user?.avatar} alt="User Avatar" />
-              <AvatarFallback>BL</AvatarFallback>
-            </Avatar>
-            <CardTitle className="text-xl font-semibold text-white">
-              Create New Repo
-            </CardTitle>
-          </div>
-          <p className="text-sm text-zinc-400">
-            Share your latest project or post — include title, description, and
-            tags.
-          </p>
-        </CardHeader>
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center py-10">
+      <Card className="w-full max-w-2xl bg-zinc-900 border-zinc-800 shadow-xl">
+        <CardContent className="p-8 space-y-6">
+          <h1 className="text-3xl font-semibold text-white">
+            Create Repo Post
+          </h1>
+          <Separator className="bg-zinc-700" />
 
-        {/* Use a form element and add the onSubmit handler */}
-        <form onSubmit={handleSubmit}>
-          <CardContent className="flex flex-col gap-5">
-            {/* Title */}
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Title</label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* === Select Repository === */}
+            <div className="space-y-2">
+              <Label className="text-white">Select Repository</Label>
+              <select
+                className="w-full bg-zinc-800 text-white rounded-md px-3 py-2 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-600"
+                onChange={(e) => {
+                  const repo = githubRepos.find(
+                    (r) => r.name === e.target.value
+                  );
+                  if (repo) {
+                    let liveUrl = "";
+                    if (repo.homepage) {
+                      liveUrl = repo.homepage;
+                    } else if (repo.has_pages) {
+                      liveUrl = `https://${user.username}.github.io/${repo.name}/`;
+                    }
+
+                    setFormData((prev) => ({
+                      ...prev,
+                      title: repo.name,
+                      description: repo.description || "",
+                      githubUrl: repo.html_url,
+                      liveUrl: liveUrl,
+                    }));
+                  }
+                }}
+              >
+                <option value="">-- Select a repository --</option>
+                {githubRepos.map((repo) => (
+                  <option key={repo.id} value={repo.name}>
+                    {repo.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* === Title === */}
+            <div className="space-y-2">
+              <Label className="text-white">Title</Label>
               <Input
-                name="title"
                 value={formData.title}
-                onChange={handleChange}
-                type="text"
-                placeholder="e.g. My Portfolio Website"
-                className="bg-zinc-800 border-zinc-700 text-zinc-100"
-                required
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                placeholder="Enter project title"
+                className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
               />
             </div>
 
-            {/* Description */}
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">
-                Description
-              </label>
+            {/* === Description === */}
+            <div className="space-y-2">
+              <Label className="text-white">Description</Label>
               <Textarea
-                name="description"
                 value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe your project..."
-                className="bg-zinc-800 border-zinc-700 text-zinc-100 min-h-[120px]"
-                required
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder="Write a short description..."
+                className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
               />
             </div>
 
-            {/* Tags */}
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Tags</label>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  type="text"
-                  placeholder="Add a tag (e.g. React)"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  className="bg-zinc-800 border-zinc-700 text-zinc-100"
-                />
-                <Button
-                  type="button"
-                  onClick={addTag}
-                  variant="secondary"
-                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    onClick={() => removeTag(tag)}
-                    className="cursor-pointer bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+            {/* === GitHub URL === */}
+            <div className="space-y-2">
+              <Label className="text-white">GitHub URL</Label>
+              <Input
+                value={formData.githubUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, githubUrl: e.target.value })
+                }
+                placeholder="https://github.com/username/repo"
+                className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
+              />
+            </div>
+
+            {/* === Live URL === */}
+            <div className="space-y-2">
+              <Label className="text-white">Live Link</Label>
+              <Input
+                value={formData.liveUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, liveUrl: e.target.value })
+                }
+                placeholder="https://your-live-site.com"
+                className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
+              />
+            </div>
+
+            {/* === Tags === */}
+            <div className="space-y-2">
+              <Label className="text-white">Tags (comma separated)</Label>
+              <Input
+                value={formData.tags}
+                onChange={(e) =>
+                  setFormData({ ...formData, tags: e.target.value })
+                }
+                placeholder="react, tailwind, node"
+                className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
+              />
+            </div>
+
+            {/* === Cover Image Selection === */}
+            <div className="space-y-3">
+              <Label className="text-white">Select Cover Image</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {COVER_LIST.map((img) => (
+                  <div
+                    key={img}
+                    onClick={() =>
+                      setFormData((prev) => ({ ...prev, image: img }))
+                    }
+                    className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                      formData.image === img
+                        ? "border-yellow-400 scale-105 shadow-lg"
+                        : "border-zinc-700 hover:border-zinc-500"
+                    }`}
+                    style={{ width: "100%", height: "112px" }} // fix height matching image h-28 (7*16=112px)
                   >
-                    {tag} ✕
-                  </Badge>
+                    {/* No <img> here */}
+                    <img src={img} alt="" srcset="" />
+                  </div>
                 ))}
               </div>
+              {formData.image && (
+                <p className="text-sm text-zinc-400">
+                  ✅ Selected Image:
+                  <span className="text-zinc-200"> {formData.image}</span>
+                </p>
+              )}
             </div>
 
-            {/* Image URL */}
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">
-                Image URL
-              </label>
-              <Input
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleChange}
-                type="url"
-                placeholder="https://your-image-link.com"
-                className="bg-zinc-800 border-zinc-700 text-zinc-100"
-              />
-            </div>
-
-            {/* Links */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm text-zinc-400 mb-2">
-                  GitHub Link
-                </label>
-                <div className="relative">
-                  <Github className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
-                  <Input
-                    name="githubUrl"
-                    value={formData.githubUrl}
-                    onChange={handleChange}
-                    type="url"
-                    placeholder="https://github.com/your-repo"
-                    className="pl-9 bg-zinc-800 border-zinc-700 text-zinc-100"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm text-zinc-400 mb-2">
-                  Live Link
-                </label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
-                  <Input
-                    name="liveUrl"
-                    value={formData.liveUrl}
-                    onChange={handleChange}
-                    type="url"
-                    placeholder="https://your-live-site.com"
-                    className="pl-9 bg-zinc-800 border-zinc-700 text-zinc-100"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Display error message if it exists */}
-            {error && <p className="text-sm text-red-400">{error}</p>}
-
-            {/* Submit Button */}
+            {/* === Submit === */}
             <Button
               type="submit"
-              disabled={loading}
-              className="w-full mt-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-xl transition-transform hover:-translate-y-[1px] disabled:opacity-50"
+              className="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-semibold transition-all"
             >
-              {loading ? "Submitting..." : "Submit Post"}
+              Post Repository
             </Button>
-          </CardContent>
-        </form>
+          </form>
+        </CardContent>
       </Card>
-    </section>
+    </div>
   );
 }
+
+export default RepoPostCreate;

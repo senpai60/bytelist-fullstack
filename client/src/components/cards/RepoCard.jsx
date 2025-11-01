@@ -86,34 +86,83 @@ function RepoCard({ repoPost, user }) {
     }
   };
 
-  const handleLike = (e) => {
-    e.stopPropagation();
-    if (liked) {
-      setLikes(likes - 1);
-      setLiked(false);
-    } else {
-      setLikes(likes + 1);
-      if (disliked) {
-        setDislikes(dislikes - 1);
-        setDisliked(false);
-      }
-      setLiked(true);
-    }
-  };
+  useEffect(() => {
+    if (repoPost && user?._id) {
+      setLikes(repoPost.likes.length);
+      setDislikes(repoPost.dislike.length);
 
-  const handleDislike = (e) => {
-    e.stopPropagation();
-    if (disliked) {
-      setDislikes(dislikes - 1);
+      const userId = user._id.toString();
+
+      setLiked(repoPost.likes.some((id) => id.toString() === userId));
+      setDisliked(repoPost.dislike.some((id) => id.toString() === userId));
+    } else if (repoPost) {
+      setLikes(repoPost.likes.length);
+      setDislikes(repoPost.dislike.length);
+      setLiked(false);
       setDisliked(false);
-    } else {
-      setDislikes(dislikes + 1);
-      if (liked) {
+    }
+  }, [repoPost, user]);
+
+  const handleLike = async (e) => {
+    e.stopPropagation();
+    if (!user?._id) {
+      setErrorMessage("Please log in to like posts.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await card_InteractionApi.get(`/like/${repoPost._id}`);
+
+      if (response?.data?.message === "Like removed") {
         setLikes(likes - 1);
         setLiked(false);
+      } else if (response?.data?.message === "Liked the post") {
+        setLikes(likes + 1);
+        setLiked(true);
+        if (disliked) {
+          setDislikes(dislikes - 1);
+          setDisliked(false);
+        }
       }
-      setDisliked(true);
+      setErrorMessage("");
+    } catch (err) {
+      setErrorMessage("Error while liking the post.");
+      console.error(err);
     }
+    setIsLoading(false);
+  };
+
+  const handleDislike = async (e) => {
+    e.stopPropagation();
+    if (!user?._id) {
+      setErrorMessage("Please log in to dislike posts.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await card_InteractionApi.get(
+        `/dislike/${repoPost._id}`
+      );
+
+      if (response?.data?.message === "Dislike removed") {
+        setDislikes(dislikes - 1);
+        setDisliked(false);
+      } else if (response?.data?.message === "Disliked the post") {
+        setDislikes(dislikes + 1);
+        setDisliked(true);
+        if (liked) {
+          setLikes(likes - 1);
+          setLiked(false);
+        }
+      }
+      setErrorMessage("");
+    } catch (err) {
+      setErrorMessage("Error while disliking the post.");
+      console.error(err);
+    }
+    setIsLoading(false);
   };
 
   const handleRepoPageNavigation = () => {

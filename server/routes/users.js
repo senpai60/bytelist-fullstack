@@ -48,10 +48,14 @@ router.get(
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
+
+    // ✅ DYNAMIC COOKIE SETTINGS
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // ✅ Set to true for HTTPS (Vercel/Render)
-      sameSite: "none", // ✅ Set to "none" for cross-domain
+      secure: isProduction, // true in production, false in dev
+      sameSite: isProduction ? "none" : "lax", // "none" in production, "lax" in dev
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -75,15 +79,19 @@ router.get("/verify", async (req, res) => {
 
 // Logout
 router.post("/logout", (req, res) => {
+  // ✅ DYNAMIC COOKIE SETTINGS
+  const isProduction = process.env.NODE_ENV === "production";
+
   res.clearCookie("token", {
     httpOnly: true,
-    secure: true, // ✅ Set to true for HTTPS
-    sameSite: "none", // ✅ Set to "none" for cross-domain
+    secure: isProduction, // true in production, false in dev
+    sameSite: isProduction ? "none" : "lax", // "none" in production, "lax" in dev
     path: "/",
   });
   res.status(200).json({ message: "Logged out successfully" });
 });
 
+// Update Profile
 router.put("/update-profile", async (req, res) => {
   const token = req.cookies.token;
   if (!token) {

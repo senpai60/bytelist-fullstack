@@ -4,35 +4,114 @@ import styled from 'styled-components';
 const PrimaryLoader = () => {
   return (
     <StyledWrapper>
-      <div className="code-loader">
-        <span>{'{'}</span><span>{'}'}</span>
+      <div className="space-loader">
+        <div id="stars" className="stars" />
+        <div className="orbit" />
+        <div className="ring" />
+        <div className="planet" />
+        <div className="satellite" />
       </div>
     </StyledWrapper>
   );
 }
 
 const StyledWrapper = styled.div`
-  .code-loader {
-    color: #fff;
-    font-family: Consolas, Menlo, Monaco, monospace;
-    font-weight: bold;
-    font-size: 100px;
-    opacity: 0.8;
+  .space-loader {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    background-color: #000;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
   }
 
-  .code-loader span {
-    display: inline-block;
-    animation: pulse_414 0.4s alternate infinite ease-in-out;
+  .planet {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle at 30% 30%, #fff, #888);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
   }
 
-  .code-loader span:nth-child(odd) {
-    animation-delay: 0.4s;
+  .ring {
+    width: 120px;
+    height: 120px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotateX(75deg) rotateY(15deg);
+    animation: rotate 12s linear infinite;
   }
 
-  @keyframes pulse_414 {
-    to {
-      transform: scale(0.8);
-      opacity: 0.5;
+  .orbit {
+    width: 160px;
+    height: 160px;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .satellite {
+    width: 10px;
+    height: 10px;
+    background-color: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: orbit 8s linear infinite;
+  }
+
+  .stars {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    animation: twinkle 4s ease-in-out infinite;
+  }
+
+  .star {
+    position: absolute;
+    background-color: #fff;
+    border-radius: 50%;
+  }
+
+  @keyframes rotate {
+    0% {
+      transform: translate(-50%, -50%) rotateX(75deg) rotateY(15deg) rotate(0deg);
+    }
+    100% {
+      transform: translate(-50%, -50%) rotateX(75deg) rotateY(15deg)
+        rotate(360deg);
+    }
+  }
+
+  @keyframes orbit {
+    0% {
+      transform: rotate(0deg) translateX(80px) rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg) translateX(80px) rotate(-360deg);
+    }
+  }
+
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.8;
     }
   }`;
 
