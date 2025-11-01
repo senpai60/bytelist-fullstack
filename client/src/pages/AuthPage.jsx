@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Github } from "lucide-react";
 import { motion } from "framer-motion";
-
+const SERVER_URI = import.meta.env.VITE_SERVER_URI || "http://localhost:3000";
 export default function AuthPage() {
   const handleGithubLogin = () => {
-    window.location.href = "http://localhost:3000/users/github";
+    // 2. Use the SERVER_URI to build the correct login URL
+    window.location.href = `${SERVER_URI}/users/github`;
   };
-
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-zinc-950 overflow-hidden">
       {/* Animated gradient background */}
