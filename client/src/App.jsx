@@ -20,11 +20,15 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [userId, setUserId] = useState("");
+  
+  // 👇 YEH STATE ADD KAREIN (Pehle 'loading' tha, ab 'loadingApp' hai)
+  const [loadingApp, setLoadingApp] = useState(true); 
+
   useEffect(() => {
     const getAuthVerification = async () => {
       try {
         const response = await verifyUser();
-        console.log(response);
+        console.log(response); // 👈 Yeh line ab 'App.jsx:28' hai
 
         setUserId(response.userId);
         setUser(response.userData);
@@ -34,11 +38,21 @@ function App() {
         setIsLoggedIn(false);
         setUser(null);
       } finally {
-        setLoading(false);
+        // 👇 YAHAN UPDATE KAREIN (Yeh line ab 'App.jsx:38' hai)
+        setLoadingApp(false); // 'setLoading' ki jagah 'setLoadingApp' ka istemal karein
       }
     };
-    getAuthVerification();
+    getAuthVerification(); // 👈 Yeh line ab 'App.jsx:41' hai
   }, []);
+
+  // Aap yahaan ek loading indicator bhi add kar sakte hain
+  if (loadingApp) {
+    return (
+      <div className="w-full h-screen bg-zinc-950 flex items-center justify-center text-white">
+        Loading...
+      </div>
+    );
+  }
   return (
     <main className="w-full h-screen bg-zinc-950">
       <NavBar isLoggedIn={isLoggedIn} />

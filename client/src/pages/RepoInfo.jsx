@@ -9,13 +9,14 @@ import {
   Star,
   GitFork,
   Users,
+  Loader2, // Added Loader2 for a better loading state
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 
-// 🎨 GitHub Official Language Colors
+// 🎨 GitHub Official Language Colors (remains the same)
 const languageColors = {
   JavaScript: "#f1e05a",
   TypeScript: "#3178c6",
@@ -36,6 +37,9 @@ const languageColors = {
   Dart: "#00B4AB",
 };
 
+// ✅ Get the server URL from Vite environment variables
+const SERVER_URI = import.meta.env.VITE_SERVER_URI || "http://localhost:3000";
+
 export default function RepoInfo() {
   const { owner, repo } = useParams();
   const [repoData, setRepoData] = useState(null);
@@ -44,39 +48,40 @@ export default function RepoInfo() {
   const [contributors, setContributors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-
-  const token = import.meta.env.VITE_GITHUB_TOKEN;
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const [error, setError] = useState(null); // Added error state
 
   useEffect(() => {
+    // Ensure loading is true at the start of the effect
+    setLoading(true);
+    setError(null);
+
     const fetchData = async () => {
       try {
-        // 📦 Repo Info + Languages + Contributors Stats
-        const [repoRes, langRes, contribStatsRes] = await Promise.all([
-          axios.get(`https://api.github.com/repos/${owner}/${repo}`, { headers }),
-          axios.get(`https://api.github.com/repos/${owner}/${repo}/languages`, {
-            headers,
-          }),
-          axios.get(
-            `https://api.github.com/repos/${owner}/${repo}/stats/contributors`,
-            { headers }
-          ),
-        ]);
+        // ✅ Single, secure API call to *your* Render server
+        const response = await axios.get(
+          `${SERVER_URI}/github-repo/${owner}/${repo}`,
+          {
+            // ✅ Yeh line browser cache ko bypass kar degi
+            headers: {
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
+          }
+        );
 
-        setRepoData(repoRes.data);
-        setLanguages(langRes.data || {});
+        const { repoData, languages, contributors, readme } = response.data;
 
-        // 🧠 Contributors with real stats
-        const sorted = (contribStatsRes.data || [])
+        // Set all state from the server's response
+        setRepoData(repoData);
+        setLanguages(languages || {});
+        setReadme(readme || "No README file found.");
+
+        // 🧠 Process contributors data (same logic as before)
+        const sorted = (contributors || [])
           .map((user) => {
-            const totalAdditions = user.weeks.reduce(
-              (a, w) => a + w.a,
-              0
-            );
-            const totalDeletions = user.weeks.reduce(
-              (a, w) => a + w.d,
-              0
-            );
+            const totalAdditions = user.weeks.reduce((a, w) => a + w.a, 0);
+            const totalDeletions = user.weeks.reduce((a, w) => a + w.d, 0);
             return {
               login: user.author.login,
               id: user.author.id,
@@ -91,27 +96,10 @@ export default function RepoInfo() {
           .slice(0, 8);
 
         setContributors(sorted);
-
-        // 🧾 Try README from both main and master
-        let readmeData = "";
-        try {
-          const resMain = await axios.get(
-            `https://raw.githubusercontent.com/${owner}/${repo}/main/README.md`
-          );
-          readmeData = resMain.data;
-        } catch {
-          try {
-            const resMaster = await axios.get(
-              `https://raw.githubusercontent.com/${owner}/${repo}/master/README.md`
-            );
-            readmeData = resMaster.data;
-          } catch {
-            readmeData = "No README file found in this repository.";
-          }
-        }
-        setReadme(readmeData);
       } catch (err) {
         console.error("Error fetching repo:", err);
+        setError("Failed to load repository info. Please try again later.");
+        setRepoData(null); // Clear data on error
       } finally {
         setLoading(false);
       }
@@ -130,19 +118,21 @@ export default function RepoInfo() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-screen text-zinc-400">
+      <div className="flex items-center justify-center min-h-[80vh] text-zinc-400 gap-2">
+        <Loader2 className="animate-spin" size={20} />
         Loading repository details...
       </div>
     );
 
-  if (!repoData)
+  // Use the error state to show the message
+  if (error || !repoData)
     return (
-      <div className="text-center text-red-500 mt-20">
-        Failed to load repository info.
+      <div className="text-center text-red-400 mt-20">
+        {error || "Failed to load repository info."}
       </div>
     );
 
-  // 🧠 Calculate language percentages
+  // 🧠 Calculate language percentages (same logic as before)
   const totalBytes = Object.values(languages).reduce((a, b) => a + b, 0);
   const languagePercentages = Object.entries(languages).map(
     ([lang, bytes]) => ({
@@ -227,8 +217,8 @@ export default function RepoInfo() {
             {/* 💻 Clone Command */}
             <div className="mt-6 bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden flex items-center">
               <div className="px-4 py-2 text-emerald-400 font-mono text-sm flex-1 overflow-x-auto">
-                <span className="text-zinc-500 select-none">$</span>{" "}
-                git clone {repoData.clone_url}
+                <span className="text-zinc-500 select-none">$</span> git clone{" "}
+                {repoData.clone_url}
               </div>
               <Button
                 onClick={handleCopy}
@@ -240,7 +230,7 @@ export default function RepoInfo() {
             </div>
 
             {/* 🧠 Languages */}
-            {languagePercentages.length > 0 && (
+            {languagePercentages.length > 0 && totalBytes > 0 && (
               <div className="mt-8">
                 <h2 className="text-lg font-semibold mb-2 text-white">
                   Languages Breakdown
@@ -270,102 +260,108 @@ export default function RepoInfo() {
             )}
 
             {/* 🧑‍💻 Contributors */}
-{contributors.length > 0 ? (
-  <div className="mt-10">
-    <h2 className="text-base font-semibold mb-3 text-white flex items-center gap-2">
-      🧑‍💻 Top Contributors
-      <span className="text-zinc-500 text-xs font-normal">
-        (Commits • Lines Added • Lines Removed)
-      </span>
-    </h2>
-
-    <div className="bg-zinc-900/70 p-4 rounded-xl border border-zinc-800 shadow-md backdrop-blur-sm">
-      <div className="flex flex-col gap-3">
-        {contributors.map((user, index) => {
-          const maxCommits = Math.max(
-            ...contributors.map((u) => u.commits || 1)
-          );
-          const percent = ((user.commits / maxCommits) * 100).toFixed(1);
-
-          return (
-            <div
-              key={user.id}
-              className="flex items-center gap-3 bg-zinc-950/70 p-3 rounded-lg border border-zinc-800 hover:bg-zinc-900 transition-all"
-            >
-              <a
-                href={user.html_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <img
-                  src={user.avatar_url}
-                  alt={user.login}
-                  className="w-9 h-9 rounded-full border border-zinc-700 hover:scale-105 transition-transform"
-                />
-              </a>
-
-              <div className="flex-1 space-y-1">
-                <div className="flex justify-between items-center">
-                  <a
-                    href={user.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-zinc-200 text-sm font-medium hover:text-white"
-                  >
-                    {user.login}
-                  </a>
-                  <span className="text-xs text-zinc-400">
-                    {user.commits} commits
+            {contributors.length > 0 ? (
+              <div className="mt-10">
+                <h2 className="text-base font-semibold mb-3 text-white flex items-center gap-2">
+                  🧑‍💻 Top Contributors
+                  <span className="text-zinc-500 text-xs font-normal">
+                    (Commits • Lines Added • Lines Removed)
                   </span>
-                </div>
+                </h2>
 
-                <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 transition-all"
-                    style={{ width: `${percent}%` }}
-                  ></div>
-                </div>
+                <div className="bg-zinc-900/70 p-4 rounded-xl border border-zinc-800 shadow-md backdrop-blur-sm">
+                  <div className="flex flex-col gap-3">
+                    {contributors.map((user, index) => {
+                      const maxCommits = Math.max(
+                        ...contributors.map((u) => u.commits || 1)
+                      );
+                      const percent = (
+                        (user.commits / maxCommits) *
+                        100
+                      ).toFixed(1);
 
-                <div className="flex justify-between text-[11px] text-zinc-500 mt-1">
-                  <span className="text-emerald-400">
-                    +{user.linesAdded.toLocaleString()} lines
-                  </span>
-                  <span className="text-rose-400">
-                    -{user.linesRemoved.toLocaleString()} lines
-                  </span>
+                      return (
+                        <div
+                          key={user.id}
+                          className="flex items-center gap-3 bg-zinc-950/70 p-3 rounded-lg border border-zinc-800 hover:bg-zinc-900 transition-all"
+                        >
+                          <a
+                            href={user.html_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <img
+                              src={user.avatar_url}
+                              alt={user.login}
+                              className="w-9 h-9 rounded-full border border-zinc-700 hover:scale-105 transition-transform"
+                            />
+                          </a>
+
+                          <div className="flex-1 space-y-1">
+                            <div className="flex justify-between items-center">
+                              <a
+                                href={user.html_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-zinc-200 text-sm font-medium hover:text-white"
+                              >
+                                {user.login}
+                              </a>
+                              <span className="text-xs text-zinc-400">
+                                {user.commits} commits
+                              </span>
+                            </div>
+
+                            <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 transition-all"
+                                style={{ width: `${percent}%` }}
+                              ></div>
+                            </div>
+
+                            <div className="flex justify-between text-[11px] text-zinc-500 mt-1">
+                              <span className="text-emerald-400">
+                                +{user.linesAdded.toLocaleString()} lines
+                              </span>
+                              <span className="text-rose-400">
+                                -{user.linesRemoved.toLocaleString()} lines
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-) : (
-  <div className="mt-10">
-    <h2 className="text-base font-semibold mb-3 text-white flex items-center gap-2">
-      🧑‍💻 Contributor Activity
-    </h2>
-
-    <div className="bg-zinc-900/70 p-4 rounded-xl border border-zinc-800 shadow-md backdrop-blur-sm flex items-center gap-4">
-      <img
-        src={repoData.owner.avatar_url}
-        alt={repoData.owner.login}
-        className="w-10 h-10 rounded-full border border-zinc-700"
-      />
-      <div className="flex-1">
-        <h3 className="text-zinc-200 font-medium">{repoData.owner.login}</h3>
-        <p className="text-zinc-500 text-sm">Sole contributor — all commits by owner</p>
-        <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden mt-2">
-          <div
-            className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 w-full"
-            style={{ width: "100%" }}
-          ></div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+            ) : (
+              <div className="mt-10">
+                <h2 className="text-base font-semibold mb-3 text-white flex items-center gap-2">
+                  🧑‍💻 Contributor Activity
+                </h2>
+                <div className="bg-zinc-900/70 p-4 rounded-xl border border-zinc-800 shadow-md backdrop-blur-sm flex items-center gap-4">
+                  <img
+                    src={repoData.owner.avatar_url}
+                    alt={repoData.owner.login}
+                    className="w-10 h-10 rounded-full border border-zinc-700"
+                  />
+                  <div className="flex-1">
+                    <h3 className="text-zinc-200 font-medium">
+                      {repoData.owner.login}
+                    </h3>
+                    <p className="text-zinc-500 text-sm">
+                      Sole contributor — all commits by owner
+                    </p>
+                    <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden mt-2">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 w-full"
+                        style={{ width: "100%" }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 🧾 README Section */}
             <div className="mt-10">
@@ -374,7 +370,7 @@ export default function RepoInfo() {
               </h2>
               <article className="prose prose-invert max-w-none bg-zinc-900/80 p-5 rounded-lg border border-zinc-800 shadow-inner leading-relaxed text-zinc-200">
                 <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-                  {readme || "No README file found in this repository."}
+                  {readme}
                 </ReactMarkdown>
               </article>
             </div>
