@@ -120,7 +120,7 @@ export default function RepoInfo() {
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-[80vh] text-zinc-400 gap-2">
-        <Loader2 className="animate-spin" size={20} />
+        
         <PrimaryLoader/>
       </div>
     );

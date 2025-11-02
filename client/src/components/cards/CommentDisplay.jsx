@@ -117,14 +117,14 @@ function CommentDisplay({
                     <div className="flex items-center gap-3 mb-2">
                       <img
                         src={
-                          comment.user?.avatar || "/images/default-avatar.png"
+                          comment.author?.avatar || "/images/default-avatar.png"
                         }
-                        alt={comment.user?.username || "User"}
+                        alt={comment.author?.username || "User"}
                         className="h-8 w-8 rounded-full border border-zinc-700 object-cover"
                       />
                       <div>
                         <p className="text-sm font-medium text-zinc-200">
-                          {comment.user?.username || "Anonymous"}
+                          {comment.author?.username || "Anonymous"}
                         </p>
                         <p className="text-xs text-zinc-500">
                           {comment.createdAt
@@ -142,7 +142,7 @@ function CommentDisplay({
                     </div>
 
                     {/* Delete Button */}
-                    {user?._id && comment.user?._id === user._id && (
+                    {user?._id && comments.author?._id === user._id && (
                       <Button
                         onClick={() => handleDelete(comment._id)}
                         variant="ghost"
@@ -177,7 +177,7 @@ function CommentDisplay({
                   {replyingTo === comment._id && (
                     <ReplyBox
                       parentId={comment._id}
-                      username={comment.user?.username}
+                      username={comment.author?.username}
                       onSubmit={submitReply}
                       onCancel={() => setReplyingTo(null)}
                       isSubmitting={isSubmitting}
