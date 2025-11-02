@@ -109,5 +109,117 @@ router.post(
     }
   }
 );
+router.put('/update', verifyUser, upload.single('image'), async (req, res) => {
+  const {
+    repoPostId,
+    title,
+    description,
+    tags,
+    image: imageFromBody,  // Optional: for URL-only updates without file
+    githubUrl,
+    liveUrl,
+  } = req.body;
+
+  if (!repoPostId) {
+    return res.status(400).json({ message: "Repo post ID is required." });
+  }
+
+  try {
+    // Find the existing post and verify ownership
+    const post = await RepoPost.findById(repoPostId).populate('user', 'username');
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+    if (post.user._id.toString() !== req.user.toString()) {
+      return res.status(403).json({ message: "Unauthorized: You can only update your own posts." });
+    }
+
+    // Prepare update object
+    const updateData = {
+      title: title || post.title,
+      description: description || post.description,
+      tags: tags || post.tags,
+      githubUrl: githubUrl || post.githubUrl,
+      liveUrl: liveUrl || post.liveUrl,
+    };
+
+    let finalImageUrl = post.image;
+    let finalImagePublicId = post.imagePublicId;
+
+    // Handle new image upload if file is provided
+    if (req.file) {
+      // Delete old image if it exists
+      if (post.imagePublicId) {
+        await new Promise((resolve, reject) => {
+          cloudinary.uploader.destroy(post.imagePublicId, { invalidate: true }, (error, result) => {
+            if (error) {
+              console.error('Error deleting old image:', error);
+              reject(error);
+            } else {
+              console.log('Old image deleted:', result);
+              resolve(result);
+            }
+          });
+        });
+      }
+
+      // Upload new image
+      const uploadResult = await new Promise((resolve, reject) => {
+        const streams = cloudinary.uploader.upload_stream(
+          {
+            folder: "repo_posts",
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+        streams.end(req.file.buffer);
+      });
+
+      finalImageUrl = uploadResult.secure_url;
+      finalImagePublicId = uploadResult.public_id;
+    } else if (imageFromBody && imageFromBody !== post.image) {
+      // Optional: Handle direct URL update (e.g., from external source), clear public ID
+      finalImageUrl = imageFromBody;
+      finalImagePublicId = null;  // Since it's not from Cloudinary
+    }
+
+    // Add image fields to update
+    updateData.image = finalImageUrl;
+    updateData.imagePublicId = finalImagePublicId;
+
+    // Optional: Check for duplicate GitHub URL (excluding current post)
+    if (githubUrl && githubUrl !== post.githubUrl) {
+      const existingPost = await RepoPost.findOne({
+        user: req.user,
+        githubUrl,
+        _id: { $ne: repoPostId },  // Exclude current post
+      });
+      if (existingPost) {
+        return res.status(409).json({
+          message: "A post with this GitHub URL already exists for your account.",
+        });
+      }
+    }
+
+    // Perform the update
+    const updatedPost = await RepoPost.findByIdAndUpdate(
+      repoPostId,
+      updateData,
+      { new: true, runValidators: true }
+    ).populate('user', 'username avatar email');
+
+    res.status(200).json({ message: "Post updated successfully", updatedPost });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong, please try again later!" });
+  }
+});
+
 
 export default router;

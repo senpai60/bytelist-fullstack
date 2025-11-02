@@ -25,11 +25,13 @@ import {
   Loader2,
   MessageCircle,
   Trash2,
+  MoreVertical,
 } from "lucide-react";
 import card_InteractionApi from "../../api/card_InteractionApi";
 import { useNavigate } from "react-router-dom";
 import CommentDisplay from "./CommentDisplay";
 import commentsApi from "../../api/commentApi";
+import CardContextMenu from "./CardContextMenu"; // ✅ added import
 
 function RepoCard({ repoPost, user }) {
   const [errorMessage, setErrorMessage] = useState("");
@@ -46,6 +48,8 @@ function RepoCard({ repoPost, user }) {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [replyStates, setReplyStates] = useState({});
+
+  const [showContextMenu, setShowContextMenu] = useState(false); // ✅ toggle for 3-dot menu
 
   const navigate = useNavigate();
 
@@ -66,11 +70,11 @@ function RepoCard({ repoPost, user }) {
 
     if (user?._id) fetchArchived();
   }, [user?._id, repoPost._id]);
+
   async function fetchComments() {
     try {
       setCommentsLoading(true);
       const res = await commentsApi.get(`/${repoPost._id}`);
-      console.log("the comments are:", res.data);
       setComments(res.data || []);
     } catch (err) {
       console.error("Error fetching comments:", err);
@@ -79,7 +83,6 @@ function RepoCard({ repoPost, user }) {
     }
   }
 
-  // ✅ Fetch comments
   useEffect(() => {
     if (repoPost?._id) fetchComments();
   }, [repoPost._id]);
@@ -148,7 +151,7 @@ function RepoCard({ repoPost, user }) {
           setDisliked(false);
         }
       }
-    } catch (err) {
+    } catch {
       setErrorMessage("Error while liking the post.");
     }
     setIsLoading(false);
@@ -175,13 +178,12 @@ function RepoCard({ repoPost, user }) {
           setLiked(false);
         }
       }
-    } catch (err) {
+    } catch {
       setErrorMessage("Error while disliking the post.");
     }
     setIsLoading(false);
   };
 
-  // ✅ Comment handling
   const handleCommentClick = (e) => {
     e.stopPropagation();
     setShowCommentModal(true);
@@ -196,14 +198,10 @@ function RepoCard({ repoPost, user }) {
         content: commentText,
       });
 
-      // await fetchComments() // ❌ REMOVE THIS
-      
-      // ✅ ADD THIS: Add the new comment directly to the state
       if (response.data) {
         setComments((prevComments) => [response.data, ...prevComments]);
       }
-      
-    } catch (err) {
+    } catch {
       setErrorMessage("Error posting comment.");
     }
   };
@@ -217,38 +215,32 @@ function RepoCard({ repoPost, user }) {
     }
   };
 
- const recursivelyUpdateComments = (commentsArray, parentId, newReply) => {
-  return commentsArray.map((item) => {
-    // 1. Found the direct parent (either a top-level comment or a nested reply)
-    if (item._id === parentId) {
-      return {
-        ...item,
-        replies: [...(item.replies || []), newReply],
-      };
-    }
-
-    // 2. Not the parent, check if it has nested replies to search deeper
-    if (item.replies && item.replies.length > 0) {
-      const updatedReplies = recursivelyUpdateComments(
-        item.replies,
-        parentId,
-        newReply
-      );
-      // Only return a new object if the replies array was actually modified
-      if (updatedReplies !== item.replies) {
+  const recursivelyUpdateComments = (commentsArray, parentId, newReply) => {
+    return commentsArray.map((item) => {
+      if (item._id === parentId) {
         return {
           ...item,
-          replies: updatedReplies,
+          replies: [...(item.replies || []), newReply],
         };
       }
-    }
+      if (item.replies && item.replies.length > 0) {
+        const updatedReplies = recursivelyUpdateComments(
+          item.replies,
+          parentId,
+          newReply
+        );
+        if (updatedReplies !== item.replies) {
+          return {
+            ...item,
+            replies: updatedReplies,
+          };
+        }
+      }
+      return item;
+    });
+  };
 
-    // 3. Not the parent and no change needed
-    return item;
-  });
-};
-
-const handleAddReply = async (parentId, replyText) => {
+  const handleAddReply = async (parentId, replyText) => {
     if (!user?._id) return setErrorMessage("Please log in to reply.");
 
     try {
@@ -258,10 +250,9 @@ const handleAddReply = async (parentId, replyText) => {
         user: user._id,
       });
 
-      // ✅ CHANGE THIS: The reply is in response.data, not response.data.reply
       if (response?.data) {
         setComments((prevComments) =>
-          recursivelyUpdateComments(prevComments, parentId, response.data) // ❌ Not response.data.reply
+          recursivelyUpdateComments(prevComments, parentId, response.data)
         );
       }
     } catch (err) {
@@ -270,7 +261,6 @@ const handleAddReply = async (parentId, replyText) => {
     }
   };
 
-  // ✅ Navigate to repo detail page
   const handleRepoPageNavigation = () => {
     try {
       if (!repoPost.githubUrl) return console.error("Missing GitHub URL");
@@ -290,28 +280,6 @@ const handleAddReply = async (parentId, replyText) => {
         onClick={handleRepoPageNavigation}
         className="overflow-hidden w-full md:w-80 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md hover:shadow-zinc-800/40 hover:-translate-y-1 cursor-pointer"
       >
-        {/* SAVE BUTTON */}
-        <Button
-          onClick={handleArchived}
-          variant="outline"
-          size="sm"
-          disabled={isLoading}
-          className={`flex fixed top-2 right-2 z-888 bg-zinc-950 items-center gap-1 border-zinc-700 ${
-            isArchived
-              ? "bg-emerald-600 text-white hover:bg-emerald-700"
-              : "bg-zinc-950 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
-          }`}
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : isArchived ? (
-            <BookmarkCheck className="h-4 w-4" />
-          ) : (
-            <Bookmark className="h-4 w-4" />
-          )}
-          {isArchived ? "Saved" : "Save"}
-        </Button>
-
         {/* IMAGE */}
         <div className="h-40 w-full overflow-hidden bg-zinc-900">
           <img
@@ -322,16 +290,43 @@ const handleAddReply = async (parentId, replyText) => {
         </div>
 
         <CardHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <img
-              src={repoPost?.user?.avatar || "/images/default-avatar.png"}
-              alt={repoPost?.user?.username || "User"}
-              className="h-8 w-8 rounded-full border border-zinc-700 object-cover"
-            />
-            <span className="text-sm text-zinc-300 font-medium">
-              {repoPost?.user?.username || "Anonymous"}
-            </span>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <img
+                src={repoPost?.user?.avatar || "/images/default-avatar.png"}
+                alt={repoPost?.user?.username || "User"}
+                className="h-8 w-8 rounded-full border border-zinc-700 object-cover"
+              />
+              <span className="text-sm text-zinc-300 font-medium">
+                {repoPost?.user?.username || "Anonymous"}
+              </span>
+            </div>
+
+            {/* ✅ 3-dot context menu */}
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-zinc-400 hover:text-zinc-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowContextMenu((prev) => !prev);
+                }}
+              >
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+
+              {showContextMenu && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute right-0 mt-2 z-50"
+                >
+                  <CardContextMenu repoPost={repoPost} user={user} />
+                </div>
+              )}
+            </div>
           </div>
+
           <CardTitle className="text-lg font-semibold line-clamp-1">
             {repoPost?.title || "Untitled Project"}
           </CardTitle>
@@ -403,8 +398,30 @@ const handleAddReply = async (parentId, replyText) => {
           )}
         </CardContent>
 
+        {/* ✅ Bottom buttons (archive moved here) */}
         <CardFooter className="flex items-center justify-between border-t border-zinc-800 px-3 py-2">
           <div className="flex items-center gap-2.5">
+            {/* ARCHIVE ICON ONLY */}
+            <Button
+              onClick={handleArchived}
+              variant="ghost"
+              size="icon"
+              disabled={isLoading}
+              className={`${
+                isArchived
+                  ? "text-emerald-400 hover:text-emerald-500"
+                  : "text-zinc-400 hover:text-zinc-100"
+              }`}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isArchived ? (
+                <BookmarkCheck className="h-4 w-4" />
+              ) : (
+                <Bookmark className="h-4 w-4" />
+              )}
+            </Button>
+
             {/* GITHUB */}
             {repoPost?.githubUrl && (
               <TooltipProvider>
