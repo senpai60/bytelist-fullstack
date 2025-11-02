@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import {useNavigate} from "react-router-dom"
 
 import repoPostApi from "../api/repoPostApi";
+
 
 // === Cover Image Options ===
 const COVER_LIST = [
@@ -20,6 +22,7 @@ const COVER_LIST = [
 ];
 
 function RepoPostCreate({ user }) {
+  const navigate = useNavigate()
   const [githubRepos, setGithubRepos] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
@@ -29,8 +32,13 @@ function RepoPostCreate({ user }) {
     tags: "",
     image: "",
   });
+  const [errMessage, setErrMessage] = useState('')
 
-  // === Fetch GitHub Repos ===
+  // === Fet
+  // ch GitHub Repos ===
+
+  
+
   useEffect(() => {
     const fetchRepos = async () => {
       try {
@@ -60,10 +68,14 @@ function RepoPostCreate({ user }) {
         liveUrl: formData.liveUrl,
       });
       console.log("✅ Repo post created:", response.data);
+      navigate('/')
     } catch (err) {
       console.error("Error posting repo:", err);
+      setErrMessage(err.response?.data?.message || err.message || 'An error occurred');
     }
   };
+
+  
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center py-10">
@@ -73,7 +85,7 @@ function RepoPostCreate({ user }) {
             Create Repo Post
           </h1>
           <Separator className="bg-zinc-700" />
-
+          {errMessage && <p className="text-red-500 text-center">{errMessage}</p>}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* === Select Repository === */}
             <div className="space-y-2">
@@ -213,6 +225,8 @@ function RepoPostCreate({ user }) {
             >
               Post Repository
             </Button>
+          {errMessage && <p className="text-red-500 text-center">{errMessage}</p>}
+
           </form>
         </CardContent>
       </Card>

@@ -41,14 +41,23 @@ router.get("/user-posts", verifyUser, async (req, res) => {
 });
 
 router.post("/create-repo-post", verifyUser, async (req, res) => {
-  const { title, description, tags, image, githubUrl, liveUrl } = req.body;  // Removed 'user' from destructuring
+  const { title, description, tags, image, githubUrl, liveUrl } = req.body;
   if (!title || !githubUrl)
     return res.status(401).json({
       message: "Bro you at least need title and the GitHub repo link :)",
     });
   try {
+    // Explicit check for duplicate by user and githubUrl
+    const existingPost = await RepoPost.findOne({ user: req.user, githubUrl });
+    if (existingPost) {
+      return res.status(409).json({
+        message: "A post with this GitHub URL already exists for your account.",
+        existingPost: existingPost // Optional: Return the existing post details
+      });
+    }
+
     const newRepoPost = await RepoPost.create({
-      user: req.user,  // Use authenticated user ID from middleware
+      user: req.user,
       title,
       description,
       tags,
@@ -63,5 +72,6 @@ router.post("/create-repo-post", verifyUser, async (req, res) => {
     res.status(502).json({ message: "Try again later :)" });
   }
 });
+
 
 export default router;
