@@ -36,7 +36,8 @@ router.post("/:postId/comments", verifyUser, async (req, res) => {
 router.get("/:postId", verifyUser, async (req, res) => {
   const { postId } = req.params;
   try {
-    const comments = await Comment.find({ post: postId })
+    const comments = await Comment.find({ post: postId, parent: null }) // ✅ 1. ADD parent: null
+      .sort({ createdAt: -1 }) // ✅ 2. ADD sorting
       .populate("author", "username avatar _id")
       .populate({
         path: "replies",
@@ -58,3 +59,4 @@ router.get("/:postId", verifyUser, async (req, res) => {
 });
 
 export default router;
+

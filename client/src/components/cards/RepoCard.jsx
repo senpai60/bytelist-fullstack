@@ -195,12 +195,14 @@ function RepoCard({ repoPost, user }) {
         user: user._id,
         content: commentText,
       });
-      await fetchComments()
 
-      // if (response?.data?.comment) {
-      //   // setComments([response.data.comment, ...comments]);
-        
-      // }
+      // await fetchComments() // ❌ REMOVE THIS
+      
+      // ✅ ADD THIS: Add the new comment directly to the state
+      if (response.data) {
+        setComments((prevComments) => [response.data, ...prevComments]);
+      }
+      
     } catch (err) {
       setErrorMessage("Error posting comment.");
     }
@@ -247,28 +249,26 @@ function RepoCard({ repoPost, user }) {
 };
 
 const handleAddReply = async (parentId, replyText) => {
-  if (!user?._id) return setErrorMessage("Please log in to reply.");
+    if (!user?._id) return setErrorMessage("Please log in to reply.");
 
-  try {
-    // POST request logic remains the same.
-    // The server must return the full, populated new reply object (response.data.reply)
-    const response = await commentsApi.post(`/${repoPost._id}/comments`, {
-      parentId,
-      content: replyText,
-      user: user._id,
-    });
+    try {
+      const response = await commentsApi.post(`/${repoPost._id}/comments`, {
+        parentId,
+        content: replyText,
+        user: user._id,
+      });
 
-    if (response?.data?.reply) {
-      // ✅ Use the recursive function to find the right place and insert the reply
-      setComments((prevComments) =>
-        recursivelyUpdateComments(prevComments, parentId, response.data.reply)
-      );
+      // ✅ CHANGE THIS: The reply is in response.data, not response.data.reply
+      if (response?.data) {
+        setComments((prevComments) =>
+          recursivelyUpdateComments(prevComments, parentId, response.data) // ❌ Not response.data.reply
+        );
+      }
+    } catch (err) {
+      setErrorMessage("Error posting reply.");
+      console.error(err);
     }
-  } catch (err) {
-    setErrorMessage("Error posting reply.");
-    console.error(err);
-  }
-};
+  };
 
   // ✅ Navigate to repo detail page
   const handleRepoPageNavigation = () => {
