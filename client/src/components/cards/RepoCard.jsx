@@ -66,22 +66,21 @@ function RepoCard({ repoPost, user }) {
 
     if (user?._id) fetchArchived();
   }, [user?._id, repoPost._id]);
+  async function fetchComments() {
+    try {
+      setCommentsLoading(true);
+      const res = await commentsApi.get(`/${repoPost._id}`);
+      console.log("the comments are:", res.data);
+      setComments(res.data || []);
+    } catch (err) {
+      console.error("Error fetching comments:", err);
+    } finally {
+      setCommentsLoading(false);
+    }
+  }
 
   // ✅ Fetch comments
   useEffect(() => {
-    async function fetchComments() {
-      try {
-        setCommentsLoading(true);
-        const res = await commentsApi.get(`/${repoPost._id}`);
-        console.log("the comments are:", res.data);
-        setComments(res.data || []);
-      } catch (err) {
-        console.error("Error fetching comments:", err);
-      } finally {
-        setCommentsLoading(false);
-      }
-    }
-
     if (repoPost?._id) fetchComments();
   }, [repoPost._id]);
 
@@ -196,10 +195,12 @@ function RepoCard({ repoPost, user }) {
         user: user._id,
         content: commentText,
       });
+      await fetchComments()
 
-      if (response?.data?.comment) {
-        setComments([response.data.comment, ...comments]);
-      }
+      // if (response?.data?.comment) {
+      //   // setComments([response.data.comment, ...comments]);
+        
+      // }
     } catch (err) {
       setErrorMessage("Error posting comment.");
     }
