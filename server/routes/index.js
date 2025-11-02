@@ -8,6 +8,7 @@ import usersRouter from "./users.js";
 import repoPostsRoute from "./repoPosts.js";
 import postInteractionRoute from "./repoPost_Interactions.js";
 import updateAchievementsRoute from "./achievementsUpdate.js"
+import commentsRoute from './comments.js'
 
 
 
@@ -97,6 +98,7 @@ router.use("/users", usersRouter);
 router.use("/repo-posts", repoPostsRoute);
 router.use("/post-interaction", postInteractionRoute);
 router.use("/update-achievements",updateAchievementsRoute)
+router.use('/comments',commentsRoute)
 
 export default router;
 //===AFK===

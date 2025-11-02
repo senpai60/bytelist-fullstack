@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import passport from "passport";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import User from "../models/User.js";
+import verifyUser from "../middleware/verifyUser.js";  // Import the middleware
 
 // Setup Passport GitHub
 passport.use(
@@ -63,17 +64,14 @@ router.get(
   }
 );
 
-// Verify token
-router.get("/verify", async (req, res) => {
-  const token = req.cookies.token;
-  if (!token) return res.status(401).json({ message: "No token found" });
+// Verify token (using middleware)
+router.get("/verify", verifyUser, async (req, res) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(req.user);
     if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json({ user });
-  } catch {
-    res.status(401).json({ message: "Invalid token" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -91,17 +89,11 @@ router.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// Update Profile
-router.put("/update-profile", async (req, res) => {
-  const token = req.cookies.token;
-  if (!token) {
-    return res.status(401).json({ message: "Not authenticated. Please log in." });
-  }
-
+// Update Profile (using middleware)
+router.put("/update-profile", verifyUser, async (req, res) => {
   try {
-    // 1. Verify the token to get the user's ID
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
+    // 1. Get the user ID from the verified token
+    const userId = req.user;
 
     // 2. Get the new profile data from the request body
     const { username, bio, avatar, coverPhoto, github, linkedin, twitter } = req.body;
@@ -131,11 +123,8 @@ router.put("/update-profile", async (req, res) => {
 
   } catch (err) {
     console.error("Profile update error:", err);
-    if (err.name === 'JsonWebTokenError') {
-      return res.status(401).json({ message: "Invalid token" });
-    }
     if (err.name === 'ValidationError') {
-        return res.status(400).json({ message: err.message });
+      return res.status(400).json({ message: err.message });
     }
     res.status(500).json({ message: "Server error during profile update" });
   }

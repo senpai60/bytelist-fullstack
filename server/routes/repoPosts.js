@@ -3,6 +3,7 @@ const router = express.Router();
 
 import jwt from 'jsonwebtoken'
 import RepoPost from "../models/RepoPost.js";
+import verifyUser from "../middleware/verifyUser.js";  // Import the middleware
 
 router.get("/all-repo-posts", async (req, res) => {
   try {
@@ -20,12 +21,12 @@ router.get("/all-repo-posts", async (req, res) => {
     });
   }
 });
-router.get("/user-posts", async (req, res) => {
-  const token = req.cookies.token;
-  const decoded =  jwt.verify(token,process.env.JWT_SECRET)
+
+// User-specific posts (using middleware for auth)
+router.get("/user-posts", verifyUser, async (req, res) => {
   try {
     // Populate 'user' field from User model
-    const repoPosts = await RepoPost.find({user:decoded.userId})
+    const repoPosts = await RepoPost.find({user: req.user})
       .populate("user", "username avatar email") // only send needed fields
       .sort({ createdAt: -1 }); // optional: newest first
 
@@ -39,17 +40,15 @@ router.get("/user-posts", async (req, res) => {
   }
 });
 
-
-router.post("/create-repo-post", async (req, res) => {
-  const { user, title, description, tags, image, githubUrl, liveUrl } =
-    req.body;
+router.post("/create-repo-post", verifyUser, async (req, res) => {
+  const { title, description, tags, image, githubUrl, liveUrl } = req.body;  // Removed 'user' from destructuring
   if (!title || !githubUrl)
     return res.status(401).json({
       message: "Bro you at least need title and the GitHub repo link :)",
     });
   try {
     const newRepoPost = await RepoPost.create({
-      user,
+      user: req.user,  // Use authenticated user ID from middleware
       title,
       description,
       tags,
