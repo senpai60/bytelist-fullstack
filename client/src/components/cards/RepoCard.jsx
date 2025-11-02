@@ -215,32 +215,60 @@ function RepoCard({ repoPost, user }) {
     }
   };
 
-  const handleAddReply = async (parentId, replyText) => {
-    if (!user?._id) return setErrorMessage("Please log in to reply.");
-
-    try {
-      const response = await commentsApi.post(`/${repoPost._id}/replies`, {
-        parentId,
-        content: replyText,
-        user: user._id,
-      });
-
-      if (response?.data?.reply) {
-        setComments((prevComments) =>
-          prevComments.map((comment) =>
-            comment._id === parentId
-              ? {
-                  ...comment,
-                  replies: [...(comment.replies || []), response.data.reply],
-                }
-              : comment
-          )
-        );
-      }
-    } catch (err) {
-      setErrorMessage("Error posting reply.");
+ const recursivelyUpdateComments = (commentsArray, parentId, newReply) => {
+  return commentsArray.map((item) => {
+    // 1. Found the direct parent (either a top-level comment or a nested reply)
+    if (item._id === parentId) {
+      return {
+        ...item,
+        replies: [...(item.replies || []), newReply],
+      };
     }
-  };
+
+    // 2. Not the parent, check if it has nested replies to search deeper
+    if (item.replies && item.replies.length > 0) {
+      const updatedReplies = recursivelyUpdateComments(
+        item.replies,
+        parentId,
+        newReply
+      );
+      // Only return a new object if the replies array was actually modified
+      if (updatedReplies !== item.replies) {
+        return {
+          ...item,
+          replies: updatedReplies,
+        };
+      }
+    }
+
+    // 3. Not the parent and no change needed
+    return item;
+  });
+};
+
+const handleAddReply = async (parentId, replyText) => {
+  if (!user?._id) return setErrorMessage("Please log in to reply.");
+
+  try {
+    // POST request logic remains the same.
+    // The server must return the full, populated new reply object (response.data.reply)
+    const response = await commentsApi.post(`/${repoPost._id}/comments`, {
+      parentId,
+      content: replyText,
+      user: user._id,
+    });
+
+    if (response?.data?.reply) {
+      // ✅ Use the recursive function to find the right place and insert the reply
+      setComments((prevComments) =>
+        recursivelyUpdateComments(prevComments, parentId, response.data.reply)
+      );
+    }
+  } catch (err) {
+    setErrorMessage("Error posting reply.");
+    console.error(err);
+  }
+};
 
   // ✅ Navigate to repo detail page
   const handleRepoPageNavigation = () => {

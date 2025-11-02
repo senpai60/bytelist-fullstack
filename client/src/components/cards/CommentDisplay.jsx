@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReplyBox from "./ReplyBox";
+import NestedReply from "./NestedReply";
 
 function CommentDisplay({
   comments,
@@ -62,7 +63,8 @@ function CommentDisplay({
             Comments
           </DialogTitle>
           <DialogDescription className="text-zinc-400">
-            {comments.length} {comments.length === 1 ? "comment" : "comments"}
+            {comments?.length || 0}{" "}
+            {(comments?.length || 0) === 1 ? "comment" : "comments"}
           </DialogDescription>
         </DialogHeader>
 
@@ -97,69 +99,48 @@ function CommentDisplay({
 
         {/* Comments List */}
         <ScrollArea className="h-[70%] pr-2 mt-4">
+                   {" "}
           {isLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+            <div className="flex items-center justify-center h-full text-zinc-400">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              Loading comments...
             </div>
-          ) : comments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-32 text-zinc-500">
-              <p>No comments yet</p>
-              <p className="text-sm mt-1">Be the first to comment!</p>
+          ) : !comments || comments.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-zinc-400">
+              No comments yet. Be the first to comment!
             </div>
           ) : (
             <div className="space-y-4">
+                           {" "}
               {comments.map((comment) => (
                 <div
                   key={comment._id}
                   className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
                 >
+                                   {" "}
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3 mb-2">
-                      <img
-                        src={
-                          comment.author?.avatar || "/images/default-avatar.png"
-                        }
-                        alt={comment.author?.username || "User"}
-                        className="h-8 w-8 rounded-full border border-zinc-700 object-cover"
-                      />
-                      <div>
-                        <p className="text-sm font-medium text-zinc-200">
-                          {comment.author?.username || "Anonymous"}
-                        </p>
-                        <p className="text-xs text-zinc-500">
-                          {comment.createdAt
-                            ? new Date(comment.createdAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                }
-                              )
-                            : "Just now"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Delete Button */}
-                    {user?._id && comments.author?._id === user._id && (
-                      <Button
-                        onClick={() => handleDelete(comment._id)}
-                        variant="ghost"
-                        size="icon"
-                        className="text-zinc-500 hover:text-red-400 hover:bg-red-950/20 h-8 w-8"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                                        {/* ... (Author Info block) ... */}     
+                                  {/* Delete Button */}                   {" "}
+                    {user?._id &&
+                      comment.author?._id === user._id && ( // **FIX: Should use 'comment.author?._id' not 'comments.author?._id'**
+                        <Button
+                          onClick={() => handleDelete(comment._id)}
+                          variant="ghost"
+                          size="icon"
+                          className="text-zinc-500 hover:text-red-400 hover:bg-red-950/20 h-8 w-8"
+                        >
+                                                  <Trash2 className="h-4 w-4" />
+                                               {" "}
+                        </Button>
+                      )}
+                                     {" "}
                   </div>
-
-                  {/* Comment Text */}
+                                    {/* Comment Text */}                 {" "}
                   <p className="text-zinc-300 text-sm mt-2 leading-relaxed">
-                    {comment.text || comment.content}
+                                        {comment.text || comment.content}       
+                             {" "}
                   </p>
-
-                  {/* REPLY BUTTON */}
+                                    {/* REPLY BUTTON */}                 {" "}
                   <Button
                     onClick={() =>
                       setReplyingTo(
@@ -170,23 +151,44 @@ function CommentDisplay({
                     size="sm"
                     className="text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 mt-2"
                   >
-                    Reply
+                                        Reply                  {" "}
                   </Button>
-
-                  {/* REPLY INPUT */}
+                                    {/* TOP-LEVEL REPLY INPUT */}               
+                   {" "}
                   {replyingTo === comment._id && (
                     <ReplyBox
-                      parentId={comment._id}
+                      parentId={comment._id} // Pass the comment author's username for @mention
                       username={comment.author?.username}
                       onSubmit={submitReply}
                       onCancel={() => setReplyingTo(null)}
                       isSubmitting={isSubmitting}
                     />
                   )}
+                                                     {" "}
+                  {/* NESTED REPLIES (USING RECURSIVE COMPONENT) */}           
+                       {" "}
+                  {comment.replies?.length > 0 && (
+                    <div className="mt-3 space-y-3">
+                                           {" "}
+                      {comment.replies.map((reply) => (
+                        <NestedReply
+                          key={reply._id}
+                          reply={reply}
+                          depth={1} // Start depth at 1 for visual indentation
+                          onReply={onAddReply} // The same handler from RepoCard
+                          isSubmitting={isSubmitting}
+                        />
+                      ))}
+                                         {" "}
+                    </div>
+                  )}
+                                 {" "}
                 </div>
               ))}
+                         {" "}
             </div>
           )}
+                 {" "}
         </ScrollArea>
       </DialogContent>
     </Dialog>

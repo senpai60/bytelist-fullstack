@@ -34,14 +34,23 @@ router.post("/:postId/comments", verifyUser, async (req, res) => {
 });
 
 router.get("/:postId", verifyUser, async (req, res) => {
-  const {postId} = req.params;
+  const { postId } = req.params;
   try {
     const comments = await Comment.find({ post: postId })
       .populate("author", "username avatar _id")
-      .populate("replies")
+      .populate({
+        path: "replies",
+        populate: [
+          { path: "author", select: "username avatar _id" },
+          {
+            path: "replies",
+            populate: { path: "author", select: "username avatar _id" },
+          },
+        ],
+      })
       .lean();
-    res.status(200).json(comments)
 
+    res.status(200).json(comments);
   } catch (err) {
     console.error(err);
     res.status(502).json({ message: "server down" });
@@ -49,4 +58,3 @@ router.get("/:postId", verifyUser, async (req, res) => {
 });
 
 export default router;
-// AFK HU ME ABHI AATA HU LUNCH K BAAD

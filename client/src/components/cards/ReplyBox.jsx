@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, X } from "lucide-react";
@@ -17,11 +17,19 @@ import { Send, X } from "lucide-react";
 function ReplyBox({ parentId, onSubmit, onCancel, username, isSubmitting = false }) {
   const [replyText, setReplyText] = useState("");
 
+
+  useEffect(() => {
+    if (username) {
+      setReplyText(`@${username} `);
+    }
+  }, [username]);
   const handleSubmit = async () => {
-    if (!replyText.trim()) return;
-    await onSubmit(parentId, replyText);
-    setReplyText("");
-  };
+    if (!replyText.trim() || replyText.trim() === `@${username}`) return; // Prevent submitting just the mention
+    
+    // We don't need to change `replyText` here, just pass it to the handler
+    await onSubmit(parentId, replyText);
+    setReplyText("");
+  };
 
   return (
     <div className="mt-3 ml-10 bg-zinc-900/40 border border-zinc-800 rounded-lg p-3 transition-colors">
