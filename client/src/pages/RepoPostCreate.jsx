@@ -6,23 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import {useNavigate} from "react-router-dom"
+import { Loader2 } from "lucide-react"; // 🔥 Added
+import { useNavigate } from "react-router-dom";
 
 import repoPostApi from "../api/repoPostApi";
 
-
-// === Cover Image Options ===
-const COVER_LIST = [
-  "https://images.unsplash.com/photo-1743003902336-8a11c244e28f?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YWxsfGVufDB8MHwwfHx8Mg%3D%3D&auto=format&fit=crop&q=60&w=600",
-  "https://images.unsplash.com/photo-1638521476152-d0a01eaa1207?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGFsbHxlbnwwfDB8MHx8fDI%3D&auto=format&fit=crop&q=60&w=600",
-  "https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dGVjaHxlbnwwfDB8MHx8fDI%3D&auto=format&fit=crop&q=60&w=600",
-  "https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8dGVjaHxlbnwwfDB8MHx8fDI%3D&auto=format&fit=crop&q=60&w=600",
-  "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjN8fHRlY2h8ZW58MHwwfDB8fHwy&auto=format&fit=crop&q=60&w=600",
-  "https://images.unsplash.com/photo-1515343480029-43cdfe6b6aae?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzN8fHRlY2h8ZW58MHwwfDB8fHwy&auto=format&fit=crop&q=60&w=600"
-];
-
 function RepoPostCreate({ user }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [githubRepos, setGithubRepos] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
@@ -32,13 +22,12 @@ function RepoPostCreate({ user }) {
     tags: "",
     image: "",
   });
-  const [errMessage, setErrMessage] = useState('')
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState("");
+  const [errMessage, setErrMessage] = useState("");
+  const [loading, setLoading] = useState(false); // 🔥 Added loader state
 
-  // === Fet
-  // ch GitHub Repos ===
-
-  
-
+  // Fetch GitHub repos
   useEffect(() => {
     const fetchRepos = async () => {
       try {
@@ -53,41 +42,77 @@ function RepoPostCreate({ user }) {
     if (user?.username) fetchRepos();
   }, [user]);
 
-  // === Submit Form ===
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await repoPostApi.post("/create-repo-post", {
-        user: user?._id,
-        title: formData.title,
-        description: formData.description,
-        tags: formData.tags,
-        image: formData.image,
-        githubUrl: formData.githubUrl,
-        liveUrl: formData.liveUrl,
-      });
-      console.log("✅ Repo post created:", response.data);
-      navigate('/')
-    } catch (err) {
-      console.error("Error posting repo:", err);
-      setErrMessage(err.response?.data?.message || err.message || 'An error occurred');
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setSelectedFile(file);
+    setErrMessage("");
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setFilePreview(previewUrl);
+      return () => URL.revokeObjectURL(previewUrl);
+    } else {
+      setFilePreview("");
     }
   };
 
-  
+  // Submit form
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrMessage("");
+    if (!formData.title || !formData.githubUrl) {
+      setErrMessage("Title and GitHub URL are required!");
+      return;
+    }
+
+    const submitData = new FormData();
+    submitData.append("title", formData.title);
+    submitData.append("description", formData.description);
+    submitData.append("tags", formData.tags);
+    submitData.append("githubUrl", formData.githubUrl);
+    submitData.append("liveUrl", formData.liveUrl);
+    if (selectedFile) submitData.append("image", selectedFile);
+
+    try {
+      setLoading(true); // 🔥 Show loader
+      const response = await repoPostApi.post("/create-repo-post", submitData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      console.log("✅ Repo post created:", response.data);
+      setFormData({
+        title: "",
+        description: "",
+        githubUrl: "",
+        liveUrl: "",
+        tags: "",
+        image: "",
+      });
+      setSelectedFile(null);
+      setFilePreview("");
+      navigate("/");
+    } catch (err) {
+      console.error("Error posting repo:", err);
+      setErrMessage(
+        err.response?.data?.message || err.message || "An error occurred"
+      );
+    } finally {
+      setLoading(false); // 🔥 Hide loader
+    }
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center py-10">
       <Card className="w-full max-w-2xl bg-zinc-900 border-zinc-800 shadow-xl">
         <CardContent className="p-8 space-y-6">
-          <h1 className="text-3xl font-semibold text-white">
-            Create Repo Post
-          </h1>
+          <h1 className="text-3xl font-semibold text-white">Create Repo Post</h1>
           <Separator className="bg-zinc-700" />
-          {errMessage && <p className="text-red-500 text-center">{errMessage}</p>}
+          {errMessage && (
+            <p className="text-red-500 text-center">{errMessage}</p>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* === Select Repository === */}
+            {/* Select Repository */}
             <div className="space-y-2">
               <Label className="text-white">Select Repository</Label>
               <select
@@ -103,7 +128,6 @@ function RepoPostCreate({ user }) {
                     } else if (repo.has_pages) {
                       liveUrl = `https://${user.username}.github.io/${repo.name}/`;
                     }
-
                     setFormData((prev) => ({
                       ...prev,
                       title: repo.name,
@@ -123,110 +147,122 @@ function RepoPostCreate({ user }) {
               </select>
             </div>
 
-            {/* === Title === */}
+            {/* Title */}
             <div className="space-y-2">
               <Label className="text-white">Title</Label>
               <Input
                 value={formData.title}
                 onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
+                  setFormData((prev) => ({ ...prev, title: e.target.value }))
                 }
                 placeholder="Enter project title"
                 className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
+                required
               />
             </div>
 
-            {/* === Description === */}
+            {/* Description */}
             <div className="space-y-2">
               <Label className="text-white">Description</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
                 }
                 placeholder="Write a short description..."
                 className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
               />
             </div>
 
-            {/* === GitHub URL === */}
+            {/* GitHub URL */}
             <div className="space-y-2">
               <Label className="text-white">GitHub URL</Label>
               <Input
                 value={formData.githubUrl}
                 onChange={(e) =>
-                  setFormData({ ...formData, githubUrl: e.target.value })
+                  setFormData((prev) => ({
+                    ...prev,
+                    githubUrl: e.target.value,
+                  }))
                 }
                 placeholder="https://github.com/username/repo"
                 className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
+                required
               />
             </div>
 
-            {/* === Live URL === */}
+            {/* Live URL */}
             <div className="space-y-2">
               <Label className="text-white">Live Link</Label>
               <Input
                 value={formData.liveUrl}
                 onChange={(e) =>
-                  setFormData({ ...formData, liveUrl: e.target.value })
+                  setFormData((prev) => ({ ...prev, liveUrl: e.target.value }))
                 }
                 placeholder="https://your-live-site.com"
                 className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
               />
             </div>
 
-            {/* === Tags === */}
+            {/* Tags */}
             <div className="space-y-2">
               <Label className="text-white">Tags (comma separated)</Label>
               <Input
                 value={formData.tags}
                 onChange={(e) =>
-                  setFormData({ ...formData, tags: e.target.value })
+                  setFormData((prev) => ({ ...prev, tags: e.target.value }))
                 }
                 placeholder="react, tailwind, node"
                 className="bg-zinc-800 text-white border-zinc-700 placeholder:text-zinc-500"
               />
             </div>
 
-            {/* === Cover Image Selection === */}
+            {/* Cover Image */}
             <div className="space-y-3">
               <Label className="text-white">Select Cover Image</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {COVER_LIST.map((img) => (
-                  <div
-                    key={img}
-                    onClick={() =>
-                      setFormData((prev) => ({ ...prev, image: img }))
-                    }
-                    className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                      formData.image === img
-                        ? "border-yellow-400 scale-105 shadow-lg"
-                        : "border-zinc-700 hover:border-zinc-500"
-                    }`}
-                    style={{ width: "100%", height: "112px" }} // fix height matching image h-28 (7*16=112px)
-                  >
-                    {/* No <img> here */}
-                    <img src={img} alt="" srcset="" />
-                  </div>
-                ))}
-              </div>
-              {formData.image && (
-                <p className="text-sm text-zinc-400">
-                  ✅ Selected Image:
-                  <span className="text-zinc-200"> {formData.image}</span>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full bg-zinc-800 text-white border-zinc-700 file:bg-zinc-700 file:text-white file:border-0 file:rounded file:mr-2 cursor-pointer"
+              />
+              {filePreview && (
+                <div className="relative">
+                  <img
+                    src={filePreview}
+                    alt="Preview"
+                    className="w-full max-h-48 object-cover rounded border border-zinc-700"
+                  />
+                  <p className="text-sm text-zinc-400 mt-1">
+                    ✅ Selected: {selectedFile?.name}
+                  </p>
+                </div>
+              )}
+              {!selectedFile && (
+                <p className="text-sm text-zinc-500">
+                  No image selected (optional for post).
                 </p>
               )}
             </div>
 
-            {/* === Submit === */}
+            {/* 🔥 Loader integrated button */}
             <Button
               type="submit"
+              disabled={loading}
               className="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-semibold transition-all"
             >
-              Post Repository
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                "Post Repository"
+              )}
             </Button>
-          {errMessage && <p className="text-red-500 text-center">{errMessage}</p>}
-
           </form>
         </CardContent>
       </Card>

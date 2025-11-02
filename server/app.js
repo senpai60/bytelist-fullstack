@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 import logger from "morgan";
 import { fileURLToPath } from "url";
 import cors from "cors";
+import { v2 as cloudinary } from 'cloudinary';
+
 import indexRouter from "./routes/index.js";
 
 import connectDB from "./utils/db.js";
@@ -17,6 +19,8 @@ const app = express();
 // ==============imports-end================//
 
 connectDB();
+
+
 
 // === CORS === //
 const whitelist = [
@@ -48,6 +52,17 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+
+
+// ===CLOUDINARY===//
+
+cloudinary.config({
+  cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
+
+// ===CLOUDINARY===//
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
