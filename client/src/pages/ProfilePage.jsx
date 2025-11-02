@@ -11,12 +11,27 @@ import repoPostApi from "../api/repoPostApi";
 import { Github, Linkedin, Twitter, Edit2 } from "lucide-react"; // ✅ Import icons
 import PrimaryLoader from "../components/loaders/PrimaryLoader";
 
+// profile-colors
+// Achievement-based border mapping
+const achievementBorders = {
+  "Bug Hunter": "border-green-400 shadow-[0_0_12px_rgba(34,197,94,0.5)]",
+  "50 Likes": "border-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.5)]",
+  "Top Poster": "border-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.5)]",
+  "Code Explorer": "border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.5)]",
+  "Loved Creator":
+    "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-borderFlow",
+};
+
 function ProfilePage({ user: initialUser }) {
   // ✅ Use state for user, so it can be updated after editing
   const [user, setUser] = useState(initialUser);
   const [repoPosts, setRepoPosts] = useState([]);
   const [isEditing, setIsEditing] = useState(false); // ✅ State to control the modal
+
   const navigate = useNavigate();
+
+  const topAchievement = user.achievements?.[user.achievements.length - 1];
+  // const avatarBorder = borderColors[topAchievement?.id] || "border-zinc-700";
 
   // ✅ Update user state if the prop changes (e.g., on app load)
   useEffect(() => {
@@ -66,10 +81,26 @@ function ProfilePage({ user: initialUser }) {
     // Handle loading or user-not-found state, maybe redirect
     return (
       <section className="min-h-screen w-full bg-zinc-950 text-zinc-100 p-6 flex items-center justify-center">
-        <PrimaryLoader/>
+        <PrimaryLoader />
       </section>
     );
   }
+
+  const returnAvatarBorder = (user) => {
+  if (!user.achievements || user.achievements.length === 0)
+    return "border-zinc-700";
+
+  // Gradient achievements take priority
+  const gradientAch = user.achievements.find((a) =>
+    ["Loved Creator"].includes(a.title)
+  );
+  if (gradientAch) return achievementBorders[gradientAch.title];
+
+  // Otherwise, fallback to the latest or most valuable one
+  const latestAch = user.achievements[user.achievements.length - 1];
+  return achievementBorders[latestAch.title] || "border-zinc-700";
+};
+
 
   return (
     <section className="min-h-screen w-full bg-zinc-950 text-zinc-100 p-6 flex flex-col items-center">
@@ -82,12 +113,25 @@ function ProfilePage({ user: initialUser }) {
             alt="Cover"
             className="w-full h-full object-cover"
           />
-          {/* ✅ Avatar positioned over cover */}
-          <img
-            src={user.avatar || "images/default-male.jpg"}
-            alt={user.username}
-            className="h-24 w-24 md:h-32 md:w-32 rounded-full border-4 border-zinc-900 object-cover absolute -bottom-12 md:-bottom-16 left-6"
-          />
+
+          {/* ✅ Animated Avatar Wrapper */}
+          <div className="absolute -bottom-12 md:-bottom-16 left-6">
+            <div
+              className={`relative h-24 w-24 md:h-32 md:w-32 rounded-full p-[3px] ${returnAvatarBorder(
+                user
+              )}`}
+            >
+              {/* Dark inner ring to separate avatar from glow */}
+              <div className="absolute inset-0 rounded-full p-[2px] bg-zinc-900"></div>
+
+              {/* Avatar */}
+              <img
+                src={user.avatar || "images/default-male.jpg"}
+                alt={user.username}
+                className="relative z-10 h-full w-full rounded-full object-cover"
+              />
+            </div>
+          </div>
         </div>
 
         {/* --- Card Content --- */}
@@ -95,12 +139,8 @@ function ProfilePage({ user: initialUser }) {
           {/* Top section with Edit button */}
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-2xl text-white font-bold">
-                {user.username}
-              </h2>
-              <p className="text-sm text-zinc-400 mt-2 max-w-lg">
-                {user.bio}
-              </p>
+              <h2 className="text-2xl text-white font-bold">{user.username}</h2>
+              <p className="text-sm text-zinc-400 mt-2 max-w-lg">{user.bio}</p>
             </div>
             <Button
               variant="outline"
@@ -110,6 +150,32 @@ function ProfilePage({ user: initialUser }) {
               <Edit2 className="w-4 h-4 mr-2" />
               Edit Profile
             </Button>
+          </div>
+          <div className="mt-6 border-t border-zinc-800 pt-4">
+            <h3 className="text-lg font-semibold text-white mb-3">
+              Achievements
+            </h3>
+            {user.achievements?.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {user.achievements.map((ach, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 bg-zinc-800/70 border border-zinc-700 px-3 py-1.5 rounded-full text-sm text-zinc-300"
+                  >
+                    <img
+                      src={ach.icon}
+                      alt={ach.title}
+                      className="w-5 h-5 rounded-full object-contain"
+                    />
+                    <span className="text-zinc-200">{ach.title}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-zinc-500 text-sm">
+                No achievements yet. Keep going 🚀
+              </p>
+            )}
           </div>
 
           {/* ✅ Social Links */}

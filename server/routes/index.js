@@ -7,6 +7,7 @@ import axios from "axios"; // 👈 Make sure to import axios
 import usersRouter from "./users.js";
 import repoPostsRoute from "./repoPosts.js";
 import postInteractionRoute from "./repoPost_Interactions.js";
+import updateAchievementsRoute from "./achievementsUpdate.js"
 
 
 
@@ -95,6 +96,7 @@ router.get("/github-repo/:owner/:repo", async (req, res) => {
 router.use("/users", usersRouter);
 router.use("/repo-posts", repoPostsRoute);
 router.use("/post-interaction", postInteractionRoute);
+router.use("/update-achievements",updateAchievementsRoute)
 
 export default router;
 //===AFK===

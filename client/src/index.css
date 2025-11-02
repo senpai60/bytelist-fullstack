@@ -16,6 +16,36 @@ h2,h3,h4,h5 {
   font-family: "Poppins", sans-serif;
 }
 
+@keyframes borderFlow {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+.animate-borderFlow {
+  background-size: 400% 400%;
+  animation: borderFlow 6s ease infinite;
+}
+
+
+/* .animate-borderFlow {
+  background-size: 200% 200%;
+  animation: borderFlow 3s linear infinite;
+} */
+.animate-borderFlow {
+  background-size: 400% 400%;
+  animation: borderFlow 6s ease infinite;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4),
+              0 0 40px rgba(59, 130, 246, 0.3);
+}
+
+
 
 @custom-variant dark (&:is(.dark *));
 

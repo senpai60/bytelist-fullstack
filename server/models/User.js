@@ -26,6 +26,17 @@ const COVER_LIST = [
   "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/4c11a202-8870-440c-bfa9-025aa7222694/dic6o40-c8e6eb23-e051-4463-abd2-d096722f90aa.jpg/v1/fill/w_1194,h_669,q_70,strp/celestial_symphony_by_kareguya_dic6o40-pre.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NzE4IiwicGF0aCI6Ii9mLzRjMTFhMjAyLTg4NzAtNDQwYy1iZmE5LTAyNWFhNzIyMjY5NC9kaWM2bzQwLWM4ZTZlYjIzLWUwNTEtNDQ2My1hYmQyLWQwOTY3MjJmOTBhYS5qcGciLCJ3aWR0aCI6Ijw9MTI4MCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.V0jFuEOxzXSIh-oQ88Q8GOXfbEv9jvmIkAZF2POV-GQ",
 ];
 
+const achievementSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true }, // e.g., "Top Poster"
+    description: { type: String, default: "" }, // optional
+    icon: { type: String, default: "" }, // URL for a badge icon
+    unlockedAt: { type: Date, default: Date.now }, // when user earned it
+  },
+  { _id: false } // prevents creation of separate ObjectIds per achievement
+);
+
+// === User Schema ===
 const userSchema = new mongoose.Schema(
   {
     githubId: {
@@ -45,7 +56,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       unique: true,
-      sparse: true, // allows for null/optional
+      sparse: true,
       trim: true,
       lowercase: true,
     },
@@ -66,36 +77,27 @@ const userSchema = new mongoose.Schema(
         return COVER_LIST[Math.floor(Math.random() * COVER_LIST.length)];
       },
     },
-    github: {
-      type: String,
-      default: "",
-    },
-    linkedin: {
-      type: String,
-      default: "",
-    },
-    twitter: {
-      type: String,
-      default: "",
-    },
+    github: { type: String, default: "" },
+    linkedin: { type: String, default: "" },
+    twitter: { type: String, default: "" },
+
     stats: {
       posts: { type: Number, default: 0 },
       likes: { type: Number, default: 0 },
       saved: { type: Number, default: 0 },
     },
-    posts: [
-      { type: mongoose.Schema.Types.ObjectId, ref: postModelRef },
-    ],
-    likedPosts: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "RepoPost" },
-    ],
-    savedPosts: [
-      { type: mongoose.Schema.Types.ObjectId, ref: postModelRef },
-    ],
+
+    posts: [{ type: mongoose.Schema.Types.ObjectId, ref: postModelRef }],
+    likedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "RepoPost" }],
+    savedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: postModelRef }],
+
+    // 🎖️ New field: Achievements
+    achievements: {
+      type: [achievementSchema],
+      default: [],
+    },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);
