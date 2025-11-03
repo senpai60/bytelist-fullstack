@@ -14,12 +14,15 @@ import ViewPlaylistPage from "./pages/ViewPlaylistPage";
 import { useEffect, useState } from "react";
 import { verifyUser, logoutUser } from "./context/useAuth";
 import PrimaryLoader from "./components/loaders/PrimaryLoader";
+import ChallengePage from "./pages/ChallengePage";
+import ChallengeDetails from "./components/challenge/ChallengeDetails";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [userId, setUserId] = useState("");
   const [loadingApp, setLoadingApp] = useState(true);
+  const [currentChallengeId, setCurrentChallengeId] = useState("")
 
   useEffect(() => {
     const getAuthVerification = async () => {
@@ -76,6 +79,9 @@ function App() {
           <Route path="/settings" element={user ? <SettingsPage user={user} /> : <Navigate to="/auth/login" replace />} />
           <Route path="/repo/:owner/:repo" element={<RepoInfo />} />
           <Route path="/playlists" element={<PlaylistPage />} />
+          <Route path="/challenges" element={<ChallengePage user={user} />} />
+          <Route path="/challenge-details/:challengeId" element={<ChallengeDetails />} />
+          
           <Route path="/view-playlist/:playlistId" element={<ViewPlaylistPage />} />
         </Routes>
       </div>

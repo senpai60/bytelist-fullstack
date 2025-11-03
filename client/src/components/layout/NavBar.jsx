@@ -10,13 +10,14 @@ import {
   User2,
   Settings,
   PlusCircleIcon,
+  Trophy,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const navLinks = [
   { link: "/", linkIcon: <Home /> },
   { link: "/add-repo-post", linkIcon: <PlusCircleIcon /> },
   { link: "/archive", linkIcon: <Bookmark /> },
+  {link: "/challenges",linkIcon:<Trophy/> }
 ];
 
 function NavBar({ isLoggedIn }) {
