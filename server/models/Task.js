@@ -45,17 +45,17 @@ const taskSchema = new mongoose.Schema({
     default: [],
   },
   experienceLevel: {
-    type: String,
-    enum: ["beginner", "intermediate", "advanced"],
-    default: "beginner",
-  },
+  type: [String],  // Array instead of String
+  enum: ["beginner", "intermediate", "advanced"],
+  default: ["beginner"],
+},
   isCompleted: {
     type: Boolean,
     default: false,
   },
   completionPost: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Post",  // Link to the private post that completes it
+    ref: "RepoPost",  // Link to the private post that completes it
     default: null,
   },
   progress: {

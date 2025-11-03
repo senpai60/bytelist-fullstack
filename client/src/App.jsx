@@ -82,7 +82,7 @@ function App() {
           <Route path="/playlists" element={<PlaylistPage />} />
           <Route path="/challenges" element={<ChallengePage user={user} />} />
           <Route path="/challenge-details/:challengeId" element={<ChallengeDetails />} />
-          <Route path="/tasks" element={<TaskPage />} />
+          <Route path="/tasks" element={<TaskPage user={user} />} />
           
           
           <Route path="/view-playlist/:playlistId" element={<ViewPlaylistPage />} />

@@ -1,4 +1,4 @@
-import React from "react";
+import axios from "axios";
 import {
   Card,
   CardHeader,
@@ -11,12 +11,31 @@ import { Button } from "@/components/ui/button";
 import { Clock, Target, Link, User, CalendarClock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+const SERVER_URI = import.meta.env.SERVER_URI || "http://localhost:3000";
+
 export default function ChallengeCard({ challenge }) {
   const navigate = useNavigate();
   const expireDate = new Date(challenge.expireAt).toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
   });
+  const handleStartChallenge = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await axios.post(
+      `${SERVER_URI}/tasks/create/${challenge?._id}`,
+      {},  // Empty body (or omit this)
+      { withCredentials: true }  // Add this config object
+    );
+    if (response.data) {
+      navigate("/tasks");
+    }
+    console.log(`The Start Challenge Response is: ${response.data.message}`);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   return (
     <Card className="bg-zinc-900 border-zinc-800 text-zinc-100 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
@@ -101,7 +120,11 @@ export default function ChallengeCard({ challenge }) {
         >
           View Details
         </Button>
-        <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white">
+        <Button
+          onClick={(e) => handleStartChallenge(e)}
+          size="sm"
+          className="bg-blue-600 hover:bg-blue-500 text-white"
+        >
           Start Challenge
         </Button>
       </CardFooter>

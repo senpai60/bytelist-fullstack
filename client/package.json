@@ -37,6 +37,7 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.5",
     "rehype-raw": "^7.0.0",
+    "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
     "styled-components": "^6.1.19",
     "tailwind-merge": "^3.3.1",

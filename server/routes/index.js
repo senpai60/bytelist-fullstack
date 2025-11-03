@@ -10,6 +10,7 @@ import postInteractionRoute from "./repoPost_Interactions.js";
 import updateAchievementsRoute from "./achievementsUpdate.js"
 import commentsRoute from './comments.js'
 import challengeRoute from './challenges.js'
+import taskRoute from './tasks.js'
 
 
 
@@ -101,6 +102,7 @@ router.use("/post-interaction", postInteractionRoute);
 router.use("/update-achievements",updateAchievementsRoute)
 router.use('/comments',commentsRoute)
 router.use('/challenges',challengeRoute)
+router.use('/tasks',taskRoute)
 
 export default router;
 //===AFK===
