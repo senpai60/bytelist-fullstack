@@ -2,6 +2,10 @@ import { CircularTimer } from "./CircularTimer";
 import { Progress } from "@/components/ui/progress";
 import { Clock, CheckCircle2, XCircle, Target } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const SERVER_URI = import.meta.env.VITE_SERVER_URI || "http://localhost:3000";
 
 // Simple badge (since shadcn Badge is optional for play-cdn)
 const Badge = ({
@@ -20,6 +24,7 @@ const TaskCard = ({ task }) => {
   const isExpired = new Date(task?.expireAt) < new Date();
   const progressPercentage = (task?.progress.length / 5) * 100; // Assuming max 5 steps
 
+  const navigate = useNavigate();
   // Status badge color
   const getStatusColor = () => {
     if (task?.isCompleted) return "bg-green-600 text-white border-green-700";
@@ -41,8 +46,27 @@ const TaskCard = ({ task }) => {
     }
   };
 
+  const returnDomain = (source) => {
+    try {
+      const domain = new URL(source).hostname;
+      return domain;
+    } catch (error) {
+      return source; // fallback in case source is not a valid URL
+    }
+  };
+
+  const handleRemoveTask = async (e) => {
+    e.preventDefault();
+    const response = await axios.put(
+      `${SERVER_URI}/tasks/delete/${task?._id}`,
+      {},
+      { withCredentials: true }
+    );
+    if (response.data) navigate("/challenges");
+  };
+
   return (
-    <div className="overflow-hidden rounded-2xl shadow-lg bg-zinc-900 border border-zinc-800 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+    <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 shadow-md hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
       {task?.image && (
         <div className="h-48 overflow-hidden">
           <img
@@ -76,16 +100,30 @@ const TaskCard = ({ task }) => {
                 {task?.experienceLevel}
               </Badge>
             </div>
-            <div className="text-xl font-bold mb-2 text-white">
+            <h3 className="text-lg sm:text-xl font-semibold mb-1 text-white tracking-tight">
               {task?.title}
-            </div>
-            <div className="text-sm text-zinc-400 line-clamp-2">
+            </h3>
+            <p className="text-sm text-zinc-400 leading-snug line-clamp-2">
               {task?.description}
-            </div>
+            </p>
           </div>
-          {!task?.isCompleted && !isExpired && (
-            <CircularTimer expireAt={task?.expireAt} size={100} />
-          )}
+          <div className="flex items-center justify-end gap-3 mt-2">
+            {/* Duration Timer */}
+            <CircularTimer
+              task={task}
+              durationEndsAt={task?.durationEndsAt}
+              size={80}
+              type="duration"
+            />
+
+            {/* Expiry Timer */}
+            <CircularTimer
+              task={task}
+              expireAt={task?.expireAt}
+              size={80}
+              type="expiry"
+            />
+          </div>
         </div>
 
         {/* Progress Section */}
@@ -137,7 +175,9 @@ const TaskCard = ({ task }) => {
                   color="bg-zinc-700 text-white border-zinc-800"
                   className="text-xs"
                 >
-                  {source}
+                  <a href={source} target="blank_">
+                    {returnDomain(source)}
+                  </a>
                 </Badge>
               ))}
               {task?.sources.length > 3 && (
@@ -148,11 +188,18 @@ const TaskCard = ({ task }) => {
                   +{task?.sources.length - 3} more
                 </Badge>
               )}
-              {task?.isCompleted===false && (
-                <button className="w-full mt-5 py-2 rounded-2xl bg-blue-700">Upload Task</button>
+              {task?.isCompleted === false && (
+                <button className="w-full py-2 mt-4 rounded-xl bg-zinc-800 hover:bg-blue-700 text-white font-medium transition-colors">
+                  Upload Task
+                </button>
               )}
-              {task?.isCompleted===false && (
-                <button className="w-full mt-5 py-2 rounded-2xl bg-red-700">Delete Task</button>
+              {task?.isCompleted === false && (
+                <button
+                  onClick={(e) => handleRemoveTask(e)}
+                  className="w-full py-2 mt-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium transition-colors"
+                >
+                  Remove Task
+                </button>
               )}
             </div>
           </div>
