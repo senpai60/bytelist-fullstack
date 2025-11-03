@@ -14,13 +14,15 @@ import {
   Trophy,
   Menu,
   X,
+  LayoutList,
 } from "lucide-react";
 
 const navLinks = [
   { link: "/", linkIcon: Home, label: "Home" },
   { link: "/add-repo-post", linkIcon: PlusCircle, label: "Create" },
   { link: "/archive", linkIcon: Bookmark, label: "Archive" },
-  { link: "/challenges", linkIcon: Trophy, label: "Challenges" }
+  { link: "/challenges", linkIcon: Trophy, label: "Challenges" },
+  { link: "/tasks", linkIcon: LayoutList, label: "MyTasks" }
 ];
 
 function NavBar({ isLoggedIn }) {

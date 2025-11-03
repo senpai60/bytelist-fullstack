@@ -16,6 +16,7 @@ import { verifyUser, logoutUser } from "./context/useAuth";
 import PrimaryLoader from "./components/loaders/PrimaryLoader";
 import ChallengePage from "./pages/ChallengePage";
 import ChallengeDetails from "./components/challenge/ChallengeDetails";
+import { TaskPage } from "./pages/TaskPage";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -81,6 +82,8 @@ function App() {
           <Route path="/playlists" element={<PlaylistPage />} />
           <Route path="/challenges" element={<ChallengePage user={user} />} />
           <Route path="/challenge-details/:challengeId" element={<ChallengeDetails />} />
+          <Route path="/tasks" element={<TaskPage />} />
+          
           
           <Route path="/view-playlist/:playlistId" element={<ViewPlaylistPage />} />
         </Routes>
