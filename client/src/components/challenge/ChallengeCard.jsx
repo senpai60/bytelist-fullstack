@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Target, Link, User, CalendarClock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const SERVER_URI = import.meta.env.SERVER_URI || "http://localhost:3000";
+const SERVER_URI = import.meta.env.VITE_SERVER_URI || "http://localhost:3000";
 
 export default function ChallengeCard({ challenge }) {
   const navigate = useNavigate();
