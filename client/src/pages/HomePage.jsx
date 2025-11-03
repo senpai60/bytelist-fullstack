@@ -25,7 +25,7 @@ function HomePage({ user }) {
   }, []);
 
   return (
-    <section className="w-full min-h-screen bg-zinc-950 text-zinc-100 px-6 py-10 flex flex-col items-center">
+    <section className="w-full min-h-screen bg-zinc-950 text-zinc-100 px-6 py-0 md:py-10 flex flex-col items-center">
       {/* Header Section */}
       <div className="max-w-6xl w-full text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-semibold mb-2 text-white">

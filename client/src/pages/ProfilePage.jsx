@@ -103,7 +103,7 @@ function ProfilePage({ user: initialUser }) {
 
 
   return (
-    <section className="min-h-screen w-full bg-zinc-950 text-zinc-100 p-6 flex flex-col items-center">
+    <section className="min-h-screen w-full bg-zinc-950 text-zinc-100 px-6 flex flex-col items-center">
       {/* PROFILE HEADER */}
       <Card className="w-full max-w-3xl bg-zinc-900/60 border border-zinc-800 rounded-2xl overflow-hidden">
         {/* ✅ Cover Photo */}

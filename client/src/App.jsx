@@ -56,7 +56,7 @@ function App() {
   return (
     <main className="w-full h-screen bg-zinc-950">
       <NavBar isLoggedIn={isLoggedIn} />
-      <div className="all-pages pt-20 md:pt-10">
+      <div className="all-pages pt-10 md:pt-10">
         <Routes>
           <Route path="/" element={<HomePage user={user} />} />
           
