@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const repoPostsSchema = mongoose.Schema(
+const repoPostsSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -19,12 +19,9 @@ const repoPostsSchema = mongoose.Schema(
       trim: true,
       maxlength: 2000,
     },
-    tags: {
-      type: [String],
-      default: [],
-    },
-    likes: { type: [mongoose.Schema.Types.ObjectId], ref: "User",default:[] },
-    dislike: { type: [mongoose.Schema.Types.ObjectId], ref: "User",default:[] },
+    tags: { type: [String], default: [] },
+    likes: { type: [mongoose.Schema.Types.ObjectId], ref: "User", default: [] },
+    dislike: { type: [mongoose.Schema.Types.ObjectId], ref: "User", default: [] },
     image: {
       type: String,
       match: /^https?:\/\//,
@@ -38,10 +35,15 @@ const repoPostsSchema = mongoose.Schema(
       type: String,
       match: /^https?:\/\//,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
+
+    // ✅ Keep only this (task reference)
+    taskId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Task",
+      default: null,
     },
+
+    createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

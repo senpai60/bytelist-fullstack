@@ -7,6 +7,8 @@ import { v2 as cloudinary } from "cloudinary";
 import RepoPost from "../models/RepoPost.js";
 import verifyUser from "../middleware/verifyUser.js"; // Import the middleware
 
+import Task from "../models/Task.js";
+
 router.get("/all-repo-posts", async (req, res) => {
   try {
     // Populate 'user' field from User model
@@ -48,6 +50,7 @@ router.post(
   upload.single("image"),
   async (req, res) => {
     const {
+      taskId,
       title,
       description,
       tags,
@@ -59,6 +62,25 @@ router.post(
       return res.status(401).json({
         message: "Bro you at least need title and the GitHub repo link :)",
       });
+
+    if (taskId) {
+      const task = await Task.findById(taskId);
+      if (!task)
+        return res
+          .status(401)
+          .json({
+            message:
+              "No Task found :(  please try to add from the challenges section!",
+          });
+      if (task.isPermanentlyDisabled)
+        return res
+          .status(401)
+          .json({
+            message:
+              "task permanently disabled because no attempts left or challenge ended :(",
+          });
+    }
+
     try {
       let finalImageUrl = imageFromBody;
       if (req.file) {
@@ -76,7 +98,7 @@ router.post(
               }
             }
           );
-          streams.end(req.file.buffer)
+          streams.end(req.file.buffer);
         });
         finalImageUrl = uploadResult.secure_url;
       }
@@ -92,16 +114,26 @@ router.post(
         });
       }
 
+      
+
       const newRepoPost = await RepoPost.create({
         user: req.user,
         title,
         description,
         tags,
-        image:finalImageUrl,
+        image: finalImageUrl,
         githubUrl,
         liveUrl,
+        taskId: taskId,
       });
       await newRepoPost.save();
+      if (taskId) {
+        await Task.findByIdAndUpdate(taskId, {
+          isCompleted: true,
+          isPermanentlyDisabled:true,
+          completionPost: newRepoPost._id
+        })
+      }
       res.status(201).json({ message: "successful", newRepoPost: newRepoPost });
     } catch (err) {
       console.error(err);
@@ -109,13 +141,13 @@ router.post(
     }
   }
 );
-router.put('/update', verifyUser, upload.single('image'), async (req, res) => {
+router.put("/update", verifyUser, upload.single("image"), async (req, res) => {
   const {
     repoPostId,
     title,
     description,
     tags,
-    image: imageFromBody,  // Optional: for URL-only updates without file
+    image: imageFromBody, // Optional: for URL-only updates without file
     githubUrl,
     liveUrl,
   } = req.body;
@@ -126,12 +158,17 @@ router.put('/update', verifyUser, upload.single('image'), async (req, res) => {
 
   try {
     // Find the existing post and verify ownership
-    const post = await RepoPost.findById(repoPostId).populate('user', 'username');
+    const post = await RepoPost.findById(repoPostId).populate(
+      "user",
+      "username"
+    );
     if (!post) {
       return res.status(404).json({ message: "Post not found." });
     }
     if (post.user._id.toString() !== req.user.toString()) {
-      return res.status(403).json({ message: "Unauthorized: You can only update your own posts." });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized: You can only update your own posts." });
     }
 
     // Prepare update object
@@ -151,15 +188,19 @@ router.put('/update', verifyUser, upload.single('image'), async (req, res) => {
       // Delete old image if it exists
       if (post.imagePublicId) {
         await new Promise((resolve, reject) => {
-          cloudinary.uploader.destroy(post.imagePublicId, { invalidate: true }, (error, result) => {
-            if (error) {
-              console.error('Error deleting old image:', error);
-              reject(error);
-            } else {
-              console.log('Old image deleted:', result);
-              resolve(result);
+          cloudinary.uploader.destroy(
+            post.imagePublicId,
+            { invalidate: true },
+            (error, result) => {
+              if (error) {
+                console.error("Error deleting old image:", error);
+                reject(error);
+              } else {
+                console.log("Old image deleted:", result);
+                resolve(result);
+              }
             }
-          });
+          );
         });
       }
 
@@ -186,7 +227,7 @@ router.put('/update', verifyUser, upload.single('image'), async (req, res) => {
     } else if (imageFromBody && imageFromBody !== post.image) {
       // Optional: Handle direct URL update (e.g., from external source), clear public ID
       finalImageUrl = imageFromBody;
-      finalImagePublicId = null;  // Since it's not from Cloudinary
+      finalImagePublicId = null; // Since it's not from Cloudinary
     }
 
     // Add image fields to update
@@ -198,11 +239,12 @@ router.put('/update', verifyUser, upload.single('image'), async (req, res) => {
       const existingPost = await RepoPost.findOne({
         user: req.user,
         githubUrl,
-        _id: { $ne: repoPostId },  // Exclude current post
+        _id: { $ne: repoPostId }, // Exclude current post
       });
       if (existingPost) {
         return res.status(409).json({
-          message: "A post with this GitHub URL already exists for your account.",
+          message:
+            "A post with this GitHub URL already exists for your account.",
         });
       }
     }
@@ -212,14 +254,15 @@ router.put('/update', verifyUser, upload.single('image'), async (req, res) => {
       repoPostId,
       updateData,
       { new: true, runValidators: true }
-    ).populate('user', 'username avatar email');
+    ).populate("user", "username avatar email");
 
     res.status(200).json({ message: "Post updated successfully", updatedPost });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Something went wrong, please try again later!" });
+    res
+      .status(500)
+      .json({ message: "Something went wrong, please try again later!" });
   }
 });
-
 
 export default router;

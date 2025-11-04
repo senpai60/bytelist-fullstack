@@ -280,6 +280,8 @@ function RepoCard({ repoPost, user }) {
         onClick={handleRepoPageNavigation}
         className="overflow-hidden w-full md:w-80 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md hover:shadow-zinc-800/40 hover:-translate-y-1 cursor-pointer"
       >
+        
+
         {/* IMAGE */}
         <div className="h-40 w-full overflow-hidden bg-zinc-900">
           <img
@@ -336,6 +338,15 @@ function RepoCard({ repoPost, user }) {
         </CardHeader>
 
         <CardContent>
+          {
+          repoPost?.taskId!==null && (<Badge
+          key={repoPost?.taskId}
+          variant="secondary"
+          className="bg-zinc-800 mb-2 text-yellow-300 border border-zinc-700 text-xs"
+        >
+          Post From Challenge🏆
+        </Badge>)
+        }
           <div className="flex flex-wrap gap-2">
             {repoPost?.tags?.map((tag) => (
               <Badge

@@ -7,11 +7,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react"; // 🔥 Added
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useCheckTaskExpiry } from "../context/useCheckTaskExpiry";
+
 
 import repoPostApi from "../api/repoPostApi";
 
 function RepoPostCreate({ user }) {
+ const location = useLocation(); // ✅ define it here
+  const taskId = location.state?.taskId || null; // ✅ this now works
+  
+
+
+
   const navigate = useNavigate();
   const [githubRepos, setGithubRepos] = useState([]);
   const [formData, setFormData] = useState({
@@ -25,7 +33,11 @@ function RepoPostCreate({ user }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState("");
   const [errMessage, setErrMessage] = useState("");
+  
   const [loading, setLoading] = useState(false); // 🔥 Added loader state
+  const [isTaskExpired, setIsTaskExpired] = useState(false)
+
+  
 
   // Fetch GitHub repos
   useEffect(() => {
@@ -41,6 +53,12 @@ function RepoPostCreate({ user }) {
     };
     if (user?.username) fetchRepos();
   }, [user]);
+
+  // Check Initial Expiry for the Task
+  // useEffect(()=>{
+  //   const response = useCheckTaskExpiry(taskId,setErrMessage)
+  //   if(response) setIsTaskExpired(response)
+  // },[taskId])
 
   // Handle file selection
   const handleFileChange = (e) => {
@@ -72,6 +90,7 @@ function RepoPostCreate({ user }) {
     submitData.append("githubUrl", formData.githubUrl);
     submitData.append("liveUrl", formData.liveUrl);
     if (selectedFile) submitData.append("image", selectedFile);
+     if (taskId) submitData.append("taskId", taskId); 
 
     try {
       setLoading(true); // 🔥 Show loader
@@ -102,10 +121,18 @@ function RepoPostCreate({ user }) {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center py-10">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center py-0">
+      
       <Card className="w-full max-w-2xl bg-zinc-900 border-zinc-800 shadow-xl">
-        <CardContent className="p-8 space-y-6">
-          <h1 className="text-3xl font-semibold text-white">Create Repo Post</h1>
+        <CardContent className="px-8 space-y-6">
+          {taskId && (
+        <p className="text-sm text-blue-400 bg-blue-950 border border-blue-700 rounded-md px-3 py-1">
+          🧠 This post will be linked to your challenge task
+        </p>
+      )}
+          <h1 className="text-3xl font-semibold text-white">
+            Create Repo Post
+          </h1>
           <Separator className="bg-zinc-700" />
           {errMessage && (
             <p className="text-red-500 text-center">{errMessage}</p>

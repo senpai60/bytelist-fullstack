@@ -189,7 +189,9 @@ const TaskCard = ({ task }) => {
                 </Badge>
               )}
               {task?.isCompleted === false && (
-                <button className="w-full py-2 mt-4 rounded-xl bg-zinc-800 hover:bg-blue-700 text-white font-medium transition-colors">
+                <button
+                onClick={()=>navigate("/add-repo-post",{state:{taskId:task?._id}})} 
+                className="w-full py-2 mt-4 rounded-xl bg-zinc-800 hover:bg-blue-700 text-white font-medium transition-colors">
                   Upload Task
                 </button>
               )}
