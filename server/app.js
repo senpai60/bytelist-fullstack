@@ -7,6 +7,7 @@ import logger from "morgan";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import { v2 as cloudinary } from 'cloudinary';
+import("./cron/taskExpiryJob.js")
 
 import indexRouter from "./routes/index.js";
 
