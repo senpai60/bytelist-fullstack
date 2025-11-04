@@ -29,7 +29,8 @@ function LeftMenu({ handleLogout,isLoggedIn }) {
   };
 
   return (
-    <nav>
+    <>
+    <nav className="hidden md:flex md:flex-col">
       {/* ===== Logo ===== */}
       <div className="logo mt-4">
         <img src="/images/btye-list.png" alt="Logo" />
@@ -64,6 +65,10 @@ function LeftMenu({ handleLogout,isLoggedIn }) {
         }
       </div>
     </nav>
+    <div className="mob-nav w-full fixed top-0 left-0 z-999 md:hidden">
+<h1 className="text-white bg-amber-300">logo</h1>
+    </div>
+    </>
   );
 }
 

@@ -74,7 +74,7 @@ function App() {
     <main className="w-screen h-screen bg-zinc-950 overflow-x-hidden">
       {/* <NavBar isLoggedIn={isLoggedIn} /> */}
       <LeftMenu handleLogout={handleLogout} isLoggedIn={isLoggedIn} />
-      <div className="all-pages w-full h-full pl-20 pt-0 md:pt-10">
+      <div className="all-pages w-full h-full md:pl-20 pt-15 md:pt-0">
         <Routes>
           <Route path="/" element={<HomePage user={user} />} />
 
