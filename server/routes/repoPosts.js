@@ -1,5 +1,6 @@
 import express from "express";
 const router = express.Router();
+import axios from 'axios';
 
 import upload from "../middleware/multer.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -8,6 +9,8 @@ import RepoPost from "../models/RepoPost.js";
 import verifyUser from "../middleware/verifyUser.js"; // Import the middleware
 
 import Task from "../models/Task.js";
+
+const SERVER_URI = process.env.SERVER_URI || "http://localhost:300"
 
 router.get("/all-repo-posts", async (req, res) => {
   try {
@@ -133,6 +136,9 @@ router.post(
           isPermanentlyDisabled:true,
           completionPost: newRepoPost._id
         })
+        const aiResponse = await axios.get(`${SERVER_URI}/ai/analyze-repo/${newRepoPost._id}`,{withCredentials:true})
+        console.log(aiResponse.data);
+        
       }
       res.status(201).json({ message: "successful", newRepoPost: newRepoPost });
     } catch (err) {
