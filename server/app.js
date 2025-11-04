@@ -10,6 +10,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import("./cron/taskExpiryJob.js")
 
 import indexRouter from "./routes/index.js";
+import aiRouter from "./prompts/routes/ai_Index.js"
 
 import connectDB from "./utils/db.js";
 
@@ -71,5 +72,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
+app.use("/ai",aiRouter)
 
 export default app;
