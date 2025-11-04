@@ -1,2 +1,16 @@
-node_modules
+# Node modules
+node_modules/
+
+# Environment variables
 .env
+
+# Logs
+server/logs/error.log
+server/logs/combined.log
+
+# Optional log files
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
