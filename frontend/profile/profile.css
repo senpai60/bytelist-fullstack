@@ -1,10 +1,154 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-html, body {
-    width: 100%;
-    height: 100%;
+html,
+body {
+  width: 100%;
+  height: 100%;
 }
+
+main {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  display: grid;
+  grid-template-areas: "nav header" "nav top" "nav main";
+  grid-template-columns: 70px 1fr;
+  grid-template-rows: 60px 70px 1fr;
+  gap: 0.7rem;
+  background-color: #03020a;
+}
+main nav {
+  grid-area: nav;
+  background-color: #1d1d1d;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+main nav .logo {
+  width: 70px;
+  height: 70px;
+}
+main nav .logo img {
+  width: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+main nav .menu {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+}
+main nav .menu a {
+  text-decoration: none;
+  color: white;
+  font-size: 1.25rem;
+}
+main nav .menu :hover {
+  color: greenyellow;
+  cursor: pointer;
+  scale: 1.5;
+}
+main nav .logIn {
+  width: 55px;
+  height: 55px;
+  border-radius: 1rem;
+  background-color: #3C3C3C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+main nav .logIn a {
+  text-decoration: none;
+  color: white;
+  font-size: 2rem;
+}
+main nav .logIn a :hover {
+  color: greenyellow;
+  cursor: pointer;
+}
+main header {
+  grid-area: header;
+}
+main .top {
+  grid-area: top;
+  background-color: #03020a;
+}
+main .main {
+  grid-area: main;
+  display: grid;
+  grid-template-areas: "upper" "lower";
+  grid-template-columns: 1fr;
+  grid-template-rows: 2fr 1.5fr;
+  gap: 0.7rem;
+}
+main .main .upper {
+  grid-area: upper;
+  display: grid;
+  grid-template-areas: "left right" "left right";
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+  gap: 0.7rem;
+}
+main .main .upper .left {
+  grid-area: left;
+  display: grid;
+  grid-template-areas: "card1 card2" "card3 card4";
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.7rem;
+}
+main .main .upper .left .card1 {
+  grid-area: card1;
+  background-color: #1d1d1d;
+  border-radius: 1rem 1rem 0 1rem;
+}
+main .main .upper .left .card2 {
+  grid-area: card2;
+  background-color: #1d1d1d;
+  border-radius: 1rem 1rem 1rem 0;
+}
+main .main .upper .left .card3 {
+  grid-area: card3;
+  background-color: #1d1d1d;
+  border-radius: 1rem 0 1rem 1rem;
+}
+main .main .upper .left .card4 {
+  grid-area: card4;
+  background-color: #1d1d1d;
+  border-radius: 0 1rem 1rem 1rem;
+}
+main .main .upper .right {
+  grid-area: right;
+  background-color: #1d1d1d;
+  border-radius: 1rem 1rem 1rem 0;
+}
+main .main .lower {
+  grid-area: lower;
+  display: grid;
+  grid-template-areas: "left mid right";
+  grid-template-columns: 1.5fr 1.5fr 2fr;
+  grid-template-rows: 1fr;
+  gap: 0.7rem;
+}
+main .main .lower .left {
+  grid-area: left;
+  background-color: #1d1d1d;
+  border-radius: 1rem 0 0 1rem;
+}
+main .main .lower .mid {
+  grid-area: mid;
+  background-color: #1d1d1d;
+  border-radius: 0 1rem 1rem 0;
+}
+main .main .lower .right {
+  grid-area: right;
+  background-color: #1d1d1d;
+  border-radius: 0 1rem 1rem 1rem;
+}/*# sourceMappingURL=style.css.map */
