@@ -360,7 +360,7 @@ function RepoCard({ repoPost, user }) {
           </div>
 
           {/* ✅ Display Last 2 Comments */}
-          {comments.slice(-2).length > 0 && (
+          {/* {comments.slice(-2).length > 0 && (
             <div className="mt-4 space-y-3">
               {comments.slice(-2).map((comment) => {
                 const isOwnComment =
@@ -406,7 +406,7 @@ function RepoCard({ repoPost, user }) {
                 );
               })}
             </div>
-          )}
+          )} */}
         </CardContent>
 
         {/* ✅ Bottom buttons (archive moved here) */}

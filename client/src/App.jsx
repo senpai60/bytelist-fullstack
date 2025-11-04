@@ -17,8 +17,8 @@ import PrimaryLoader from "./components/loaders/PrimaryLoader";
 import ChallengePage from "./pages/ChallengePage";
 import ChallengeDetails from "./components/challenge/ChallengeDetails";
 import { TaskPage } from "./pages/TaskPage";
-import Profile from "./pages/updates/Profile";
 import LeftMenu from "./components/layout/LeftMenu";
+import Profile from "./pages/Profile";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

@@ -66,7 +66,7 @@ const TaskCard = ({ task }) => {
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 shadow-md hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
+    <div className="overflow-hidden w-full rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 shadow-md hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
       {task?.image && (
         <div className="h-48 overflow-hidden">
           <img
@@ -188,14 +188,14 @@ const TaskCard = ({ task }) => {
                   +{task?.sources.length - 3} more
                 </Badge>
               )}
-              {task?.isCompleted === false && (
+              {task?.isCompleted ? <h1 className="w-full inline-block text-6xl mt-5">TASK EXPIRED</h1> : (
                 <button
                 onClick={()=>navigate("/add-repo-post",{state:{taskId:task?._id}})} 
                 className="w-full py-2 mt-4 rounded-xl bg-zinc-800 hover:bg-blue-700 text-white font-medium transition-colors">
                   Upload Task
                 </button>
               )}
-              {task?.isCompleted === false && (
+              {task?.isCompleted ? "": (
                 <button
                   onClick={(e) => handleRemoveTask(e)}
                   className="w-full py-2 mt-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium transition-colors"

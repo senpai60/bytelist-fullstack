@@ -33,9 +33,9 @@ export const TaskPage = ({user}) => {
     }
   },[])
   return (
-    <div className="max-w-full h-[85vh] mx-auto py-8 px-5 overflow-x-hidden overflow-y-scroll text-white">
+    <div className="max-w-full h-screen mx-auto py-8 px-5 overflow-x-hidden overflow-y-scroll text-white">
       <h1 className="text-3xl font-bold mb-8">My Tasks</h1>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {tasks.map((task, idx) => (
           task?.isRemovedFromTask !== true && <TaskCard key={idx} task={task} />
         ))}

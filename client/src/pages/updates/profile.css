@@ -7,10 +7,10 @@ grid-template-areas:
 "nav header"
 "nav top"
 "nav main";
-grid-template-columns: 70px 1fr;
-grid-template-rows: 60px 70px 1fr;
-gap: 0.7rem;
-background-color: #03020a;
+grid-template-columns: 0px 1fr;
+grid-template-rows:0px 70px 1fr;
+/* gap: 0.; */
+/* background-color: #black; */
 }
 
 :root {
@@ -20,7 +20,7 @@ background-color: #03020a;
 /* NAVBAR */
 nav {
 grid-area: nav;
-width: 4%;
+width: 55px;
 
 position: fixed;
 left: 0;
@@ -32,7 +32,6 @@ justify-content: space-between;
 padding: 1rem 0.8rem;
 transition: width 0.4s ease;
 overflow: hidden;
-background-color: #1d1d1d;
 border-right: 1px solid #444;
 }
 
@@ -187,7 +186,7 @@ gap: 0.7rem;
 .profile-update .main .lower .left,
 .profile-update .main .lower .mid,
 .profile-update .main .lower .right {
-background-color: #1d1d1d;
+background-color: #0f0f0f;
 border-radius: 1rem;
 }
 
