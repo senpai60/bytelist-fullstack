@@ -17,13 +17,15 @@ import PrimaryLoader from "./components/loaders/PrimaryLoader";
 import ChallengePage from "./pages/ChallengePage";
 import ChallengeDetails from "./components/challenge/ChallengeDetails";
 import { TaskPage } from "./pages/TaskPage";
+import Profile from "./pages/updates/Profile";
+import LeftMenu from "./components/layout/LeftMenu";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [userId, setUserId] = useState("");
   const [loadingApp, setLoadingApp] = useState(true);
-  const [currentChallengeId, setCurrentChallengeId] = useState("")
+  const [currentChallengeId, setCurrentChallengeId] = useState("");
 
   useEffect(() => {
     const getAuthVerification = async () => {
@@ -49,43 +51,97 @@ function App() {
   if (loadingApp) {
     return (
       <div className="w-full h-screen bg-zinc-950 flex items-center justify-center text-white">
-        <PrimaryLoader/>
+        <PrimaryLoader />
       </div>
     );
   }
 
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    try {
+      await logoutUser();
+
+      setUser(null); // Clear user state
+      setTimeout(() => {
+        navigate("/auth/login", { replace: true });
+      }, 200);
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
+
   return (
-    <main className="w-full h-screen bg-zinc-950">
-      <NavBar isLoggedIn={isLoggedIn} />
-      <div className="all-pages pt-10 md:pt-10">
+    <main className="w-screen h-screen bg-zinc-950 overflow-x-hidden">
+      {/* <NavBar isLoggedIn={isLoggedIn} /> */}
+      <LeftMenu handleLogout={handleLogout} isLoggedIn={isLoggedIn} />
+      <div className="all-pages w-full h-full pl-20 pt-0 md:pt-10">
         <Routes>
           <Route path="/" element={<HomePage user={user} />} />
-          
-          <Route
+
+          {/* <Route
             path="/profile"
             element={
               user
                 ? <ProfilePage user={user} />
                 : <Navigate to="/auth/login" replace />
             }
+          /> */}
+          <Route
+            path="/profile"
+            element={
+              user ? (
+                <Profile user={user} />
+              ) : (
+                <Navigate to="/auth/login" replace />
+              )
+            }
           />
 
           <Route
             path="/add-repo-post"
-            element={user ? <RepoPostCreate user={user} /> : <Navigate to="/auth/login" replace />}
+            element={
+              user ? (
+                <RepoPostCreate user={user} />
+              ) : (
+                <Navigate to="/auth/login" replace />
+              )
+            }
           />
 
           <Route path="/auth/:mode" element={<AuthPage />} />
-          <Route path="/archive" element={user ? <ArchivePage user={user} /> : <Navigate to="/auth/login" replace />} />
-          <Route path="/settings" element={user ? <SettingsPage user={user} /> : <Navigate to="/auth/login" replace />} />
+          <Route
+            path="/archive"
+            element={
+              user ? (
+                <ArchivePage user={user} />
+              ) : (
+                <Navigate to="/auth/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              user ? (
+                <SettingsPage user={user} />
+              ) : (
+                <Navigate to="/auth/login" replace />
+              )
+            }
+          />
           <Route path="/repo/:owner/:repo" element={<RepoInfo />} />
           <Route path="/playlists" element={<PlaylistPage />} />
           <Route path="/challenges" element={<ChallengePage user={user} />} />
-          <Route path="/challenge-details/:challengeId" element={<ChallengeDetails />} />
+          <Route
+            path="/challenge-details/:challengeId"
+            element={<ChallengeDetails />}
+          />
           <Route path="/tasks" element={<TaskPage user={user} />} />
-          
-          
-          <Route path="/view-playlist/:playlistId" element={<ViewPlaylistPage />} />
+
+          <Route
+            path="/view-playlist/:playlistId"
+            element={<ViewPlaylistPage />}
+          />
         </Routes>
       </div>
     </main>

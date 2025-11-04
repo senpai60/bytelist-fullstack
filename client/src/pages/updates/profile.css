@@ -1,0 +1,233 @@
+.profile-update {
+width: 100%;
+height: 100%;
+padding: 0.5rem;
+display: grid;
+grid-template-areas:
+"nav header"
+"nav top"
+"nav main";
+grid-template-columns: 70px 1fr;
+grid-template-rows: 60px 70px 1fr;
+gap: 0.7rem;
+background-color: #03020a;
+}
+
+:root {
+--logo-dim: 35px;
+}
+
+/* NAVBAR */
+nav {
+grid-area: nav;
+width: 4%;
+display: flex;
+position: fixed;
+left: 0;
+top: 0;
+z-index: 999;
+height: 100%;
+flex-direction: column;
+justify-content: space-between;
+padding: 1rem 0.8rem;
+transition: width 0.4s ease;
+overflow: hidden;
+background-color: #1d1d1d;
+border-right: 1px solid #444;
+}
+
+nav:hover {
+width: 10%;
+}
+
+/* LOGO SECTION */
+nav .logo {
+width: 100%;
+display: flex;
+align-items: center;
+gap: 0.8rem;
+overflow: hidden;
+transition: all 0.3s ease;
+}
+
+nav .logo img {
+width: var(--logo-dim);
+height: var(--logo-dim);
+object-fit: cover;
+transition: transform 0.3s ease;
+}
+
+nav .logo .logo-text {
+color: white;
+font-weight: 600;
+font-size: 1rem;
+opacity: 0;
+visibility: hidden;
+transform: translateX(-10px);
+transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+}
+
+nav:hover .logo .logo-text {
+opacity: 1;
+visibility: visible;
+transform: translateX(0);
+}
+
+nav:hover .logo img {
+transform: scale(1.1);
+}
+
+/* MENU SECTION */
+nav .menu {
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+gap: 2rem;
+margin-top: 2rem;
+}
+
+nav .menu .nav-item,
+nav .logIn .nav-item {
+display: flex;
+align-items: center;
+gap: 1rem;
+color: white;
+text-decoration: none;
+transition: all 0.3s ease;
+width: 100%;
+font-weight: 500;
+}
+
+nav .menu .nav-item svg,
+nav .logIn .nav-item svg {
+flex-shrink: 0;
+transition: transform 0.3s ease, color 0.3s ease;
+}
+
+nav .menu .nav-item:hover,
+nav .logIn .nav-item:hover {
+color: greenyellow;
+transform: scale(1.05);
+}
+
+nav .nav-item .label {
+opacity: 0;
+visibility: hidden;
+white-space: nowrap;
+font-size: 0.9rem;
+transform: translateX(-10px);
+transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+}
+
+nav:hover .nav-item .label {
+opacity: 1;
+visibility: visible;
+transform: translateX(0);
+}
+
+/* BOTTOM SECTION */
+nav .logIn {
+margin-bottom: 3rem;
+display: flex;
+flex-direction: column;
+gap: 1.5rem;
+}
+
+/* MAIN GRID AREAS */
+.profile-update header {
+grid-area: header;
+}
+
+.profile-update .top {
+grid-area: top;
+background-color: #03020a;
+}
+
+.profile-update .main {
+grid-area: main;
+display: grid;
+grid-template-areas:
+"upper"
+"lower";
+grid-template-columns: 1fr;
+grid-template-rows: 2fr 1.5fr;
+gap: 0.7rem;
+}
+
+/* UPPER GRID */
+.profile-update .main .upper {
+grid-area: upper;
+display: grid;
+grid-template-areas:
+"left right"
+"left right";
+grid-template-columns: 1fr 1fr;
+grid-template-rows: 1fr;
+gap: 0.7rem;
+}
+
+.profile-update .main .upper .left {
+grid-area: left;
+display: grid;
+grid-template-areas:
+"card1 card2"
+"card3 card4";
+grid-template-columns: 1fr 1fr;
+grid-template-rows: 1fr 1fr;
+gap: 0.7rem;
+}
+
+/* CARDS AND LOWER AREA */
+.profile-update .main .upper .left .card1,
+.profile-update .main .upper .left .card2,
+.profile-update .main .upper .left .card3,
+.profile-update .main .upper .left .card4,
+.profile-update .main .upper .right,
+.profile-update .main .lower .left,
+.profile-update .main .lower .mid,
+.profile-update .main .lower .right {
+background-color: #1d1d1d;
+border-radius: 1rem;
+}
+
+.profile-update .main .upper .left .card1 {
+border-radius: 1rem 1rem 0 1rem;
+}
+
+.profile-update .main .upper .left .card2 {
+border-radius: 1rem 1rem 1rem 0;
+}
+
+.profile-update .main .upper .left .card3 {
+border-radius: 1rem 0 1rem 1rem;
+}
+
+.profile-update .main .upper .left .card4 {
+border-radius: 0 1rem 1rem 1rem;
+}
+
+.profile-update .main .upper .right {
+border-radius: 1rem 1rem 1rem 0;
+}
+
+.profile-update .main .lower {
+grid-area: lower;
+display: grid;
+grid-template-areas: "left mid right";
+grid-template-columns: 1.5fr 1.5fr 2fr;
+grid-template-rows: 1fr;
+gap: 0.7rem;
+}
+
+.profile-update .main .lower .left {
+border-radius: 1rem 0 0 1rem;
+}
+
+.profile-update .main .lower .mid {
+border-radius: 0 1rem 1rem 0;
+}
+
+.profile-update .main .lower .right {
+border-radius: 0 1rem 1rem 1rem;
+}

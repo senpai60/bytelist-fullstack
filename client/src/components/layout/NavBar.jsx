@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   NavigationMenu,
   NavigationMenuLink,
@@ -22,7 +22,9 @@ const navLinks = [
   { link: "/add-repo-post", linkIcon: PlusCircle, label: "Create" },
   { link: "/archive", linkIcon: Bookmark, label: "Archive" },
   { link: "/challenges", linkIcon: Trophy, label: "Challenges" },
-  { link: "/tasks", linkIcon: LayoutList, label: "MyTasks" }
+  { link: "/tasks", linkIcon: LayoutList, label: "MyTasks" },
+  { link: "/playlists", linkIcon: BookOpen, label: "Playlists" },
+  { link: "/settings", linkIcon: Settings, label: "Settings" },
 ];
 
 function NavBar({ isLoggedIn }) {
@@ -34,7 +36,7 @@ function NavBar({ isLoggedIn }) {
     {
       link: isLoggedIn ? "/profile" : "/auth/login",
       linkIcon: User2,
-      label: isLoggedIn ? "Profile" : "Sign In"
+      label: isLoggedIn ? "Profile" : "Sign In",
     },
   ];
 
@@ -47,7 +49,6 @@ function NavBar({ isLoggedIn }) {
       <nav className="w-full fixed top-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800/50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            
             {/* LOGO */}
             <div className="flex-shrink-0">
               <a href="/" className="flex items-center space-x-2 group">
@@ -55,8 +56,12 @@ function NavBar({ isLoggedIn }) {
                   <span className="text-white font-bold text-sm">B</span>
                 </div>
                 <h3 className="text-lg font-semibold hidden sm:block">
-                  <span className="text-zinc-400 group-hover:text-blue-400 transition-colors">Byte</span>
-                  <span className="text-white group-hover:text-purple-400 transition-colors">List</span>
+                  <span className="text-zinc-400 group-hover:text-blue-400 transition-colors">
+                    Byte
+                  </span>
+                  <span className="text-white group-hover:text-purple-400 transition-colors">
+                    List
+                  </span>
                 </h3>
               </a>
             </div>
@@ -73,7 +78,9 @@ function NavBar({ isLoggedIn }) {
                   >
                     <div className="flex items-center space-x-2">
                       <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
-                      <span className="text-sm font-medium hidden lg:block">{link.label}</span>
+                      <span className="text-sm font-medium hidden lg:block">
+                        {link.label}
+                      </span>
                     </div>
                     {/* Underline effect */}
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
@@ -86,21 +93,24 @@ function NavBar({ isLoggedIn }) {
             <div className="hidden md:flex items-center space-x-1">
               {rightLinks.map((link, index) => {
                 const Icon = link.linkIcon;
-                const isAuthLink = link.label === "Sign In" || link.label === "Profile";
-                
+                const isAuthLink =
+                  link.label === "Sign In" || link.label === "Profile";
+
                 return (
                   <a
                     key={index}
                     href={link.link}
                     className={`group relative px-4 py-2 rounded-lg transition-all duration-300 ${
-                      isAuthLink 
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/50 hover:scale-105' 
-                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                      isAuthLink
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/50 hover:scale-105"
+                        : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
                     }`}
                   >
                     <div className="flex items-center space-x-2">
                       <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
-                      <span className="text-sm font-medium hidden lg:block">{link.label}</span>
+                      <span className="text-sm font-medium hidden lg:block">
+                        {link.label}
+                      </span>
                     </div>
                   </a>
                 );
@@ -124,7 +134,7 @@ function NavBar({ isLoggedIn }) {
         {/* MOBILE MENU */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
           <div className="px-4 pt-2 pb-4 space-y-1 bg-zinc-900/50 backdrop-blur-lg border-t border-zinc-800/50">
@@ -150,16 +160,17 @@ function NavBar({ isLoggedIn }) {
             {/* Mobile Right Links */}
             {rightLinks.map((link, index) => {
               const Icon = link.linkIcon;
-              const isAuthLink = link.label === "Sign In" || link.label === "Profile";
-              
+              const isAuthLink =
+                link.label === "Sign In" || link.label === "Profile";
+
               return (
                 <a
                   key={index}
                   href={link.link}
                   className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
-                    isAuthLink 
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/50' 
-                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                    isAuthLink
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/50"
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
