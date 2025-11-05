@@ -1,65 +1,20 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom"; // You'll need react-router-dom
+import axios from "axios"; // ✅ Import axios
+
+// --- Component Imports ---
 import BentoBox from "../components/view_post/BentoBox";
 import ScoreDisplay from "../components/view_post/ScoreDisplay";
 import FeedbackList from "../components/view_post/FeedbackList";
 import MetricsGrid from "../components/view_post/MetricsGrid";
+import PrimaryLoader from "../components/loaders/PrimaryLoader";
 
-// --- Mock Data ---
-// In a real app, you'd fetch this or get it from props/loader
-const aiFeedback = {
-  _id: { $oid: "690b193bc9fb88a3060fdb8a" },
-  repoPost: { $oid: "690b192882339dc0fe68a829" },
-  aiSummary:
-    "The Metaverse repository provides a minimal setup for a React application using Vite, featuring hot module replacement (HMR) and ESLint integration. It includes essential dependencies for React and Tailwind CSS, along with a structured file organization for components and styles.",
-  codeStyleFeedback: {
-    structure:
-      "The project structure is clear and organized, with separate folders for components and styles.",
-    naming: "Naming conventions are consistent and descriptive.",
-    comments: "Code comments are minimal; consider adding more explanations.",
-    designPattern:
-      "Follows a component-based design pattern typical in React applications.",
-    uiConsistency: "UI elements are consistent with Tailwind CSS styling.",
-    userExperience: "User experience is basic; consider adding interactive features.",
-  },
-  experienceLevel: "intermediate",
-  improvements: [
-    "Add TypeScript support.",
-    "Improve README with detailed setup instructions.",
-    "Include more comprehensive ESLint rules.",
-  ],
-  metrics: {
-    efficiencyScore: 75,
-    scalabilityScore: 70,
-    designQualityScore: 80,
-    creativityScore: 65,
-    userExperienceScore: 60,
-    readabilityScore: 75,
-    maintainabilityScore: 70,
-    documentationScore: 50,
-  },
-  overallScore: 68,
-  strengths: [
-    "Minimal setup for React with Vite.",
-    "Integration of Tailwind CSS for styling.",
-    "Use of modern React features like StrictMode.",
-  ],
-  suggestions: [
-    "Consider adding TypeScript for better type safety.",
-    "Enhance documentation with examples of usage.",
-    "Implement more components to showcase the capabilities of the setup.",
-  ],
-};
+// ✅ Define the SERVER_URI from environment variables
+// Note: In Vite, env variables must be prefixed with VITE_ to be exposed to the client.
+const SERVER_URI =
+  import.meta.env.VITE_SERVER_URI || "http://localhost:3000";
 
-// Assuming you also have the post data
-const postData = {
-  title: "Metaverse React Project",
-  tags: ["react", "vite", "tailwind", "metaverse"],
-  githubUrl: "https://github.com/user/repo",
-  liveUrl: "https://repo.live",
-};
-// --- End Mock Data ---
-
-// Icon for links
+// --- Icons ---
 const LinkIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -77,9 +32,90 @@ const LinkIcon = () => (
   </svg>
 );
 
+// --- Loading & Error Components ---
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center h-screen bg-zinc-950">
+    <div className="w-16 h-16 border-4 border-lime-300 border-t-transparent rounded-full animate-spin"></div>
+    <p className="ml-4 text-lg text-zinc-100">Loading Analysis...</p>
+  </div>
+);
+
+const ErrorDisplay = ({ message }) => (
+  <div className="flex items-center justify-center h-screen bg-zinc-950 p-8">
+    <div className="p-6 text-center border rounded-lg bg-zinc-900 border-red-500/50">
+      <h2 className="text-2xl font-bold text-red-400">Error</h2>
+      <p className="mt-2 text-zinc-300">{message}</p>
+    </div>
+  </div>
+);
+
+// --- Main Page Component ---
 const ViewTaskPost = () => {
-  // Assuming 'aiFeedback' and 'postData' are fetched or passed as props
+  const { repoPostId } = useParams(); // Get the ID from the URL
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchContextData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // ✅ Construct the URL using your route and SERVER_URI
+        const url = `${SERVER_URI}/ai/repo-context/${repoPostId}`;
+
+        // ✅ Use axios.get to fetch the data
+        const res = await axios.get(url);
+
+        // ✅ Set data from the response (axios nests data in `res.data`)
+        setData(res.data.repoPostContext);
+      } catch (err) {
+        console.error("Fetch error:", err);
+
+        // ✅ Handle axios errors
+        if (err.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          setError(
+            err.response.data.message ||
+              `An error occurred: ${err.response.status}`
+          );
+        } else if (err.request) {
+          // The request was made but no response was received
+          setError("Could not connect to the server. Please try again.");
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          setError(err.message);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (repoPostId) {
+      fetchContextData();
+    }
+  }, [repoPostId]); // Dependency array remains the same
+
+  // --- Render Loading State ---
+  if (loading) {
+    return <PrimaryLoader />;
+  }
+
+  // --- Render Error State ---
+  if (error) {
+    return <ErrorDisplay message={error} />;
+  }
+
+  // --- Render Data State ---
+  if (!data) {
+    return <ErrorDisplay message="No data was found." />;
+  }
+
+  // Destructure the data from the API response
   const {
+    repoPost, // This contains title, tags, githubUrl, liveUrl
+    user, // This contains username, avatar
     overallScore,
     aiSummary,
     metrics,
@@ -87,21 +123,36 @@ const ViewTaskPost = () => {
     suggestions,
     improvements,
     codeStyleFeedback,
-  } = aiFeedback;
+  } = data;
 
   return (
-    // Ensure your body has bg-zinc-950
     <div className="min-h-screen p-4 md:p-8 bg-zinc-950 text-zinc-100">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-fr">
         {/* Box 1: Post Header */}
         <BentoBox className="lg:col-span-2">
           <div className="flex flex-col justify-between h-full">
+            {/* User Info */}
+            <div className="flex items-center gap-3 mb-4">
+              <img
+                src={user.avatar || "https://avatar.vercel.sh/" + user.username}
+                alt={`${user.username}'s avatar`}
+                className="w-10 h-10 rounded-full bg-zinc-800"
+              />
+              <div>
+                <h2 className="font-semibold text-zinc-100">{user.username}</h2>
+                <p className="text-xs text-zinc-400">Posted this review</p>
+              </div>
+            </div>
+
             <div>
               <h1 className="text-3xl font-bold text-zinc-100">
-                {postData.title}
+                {repoPost.title}
               </h1>
+              <p className="">
+                {repoPost.description}
+              </p>
               <div className="flex flex-wrap gap-2 mt-3">
-                {postData.tags.map((tag) => (
+                {repoPost.tags.map((tag) => (
                   <span
                     key={tag}
                     className="px-3 py-1 text-xs font-medium rounded-full bg-zinc-800 text-lime-300"
@@ -111,23 +162,26 @@ const ViewTaskPost = () => {
                 ))}
               </div>
             </div>
+
             <div className="flex gap-4 mt-6">
               <a
-                href={postData.githubUrl}
+                href={repoPost.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors rounded-lg bg-zinc-800 text-zinc-100 hover:bg-zinc-700"
               >
                 <LinkIcon /> GitHub
               </a>
-              <a
-                href={postData.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-black transition-colors rounded-lg bg-lime-300 hover:bg-lime-400"
-              >
-                <LinkIcon /> Live Demo
-              </a>
+              {repoPost.liveUrl && (
+                <a
+                  href={repoPost.liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-black transition-colors rounded-lg bg-lime-300 hover:bg-lime-400"
+                >
+                  <LinkIcon /> Live Demo
+                </a>
+              )}
             </div>
           </div>
         </BentoBox>

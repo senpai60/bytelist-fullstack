@@ -144,7 +144,7 @@ function App() {
             element={<ViewPlaylistPage />}
           />
           <Route
-            path="/view-post-context/:repoId"
+            path="/view-post-context/:repoPostId"
             element={<ViewTaskPost />}
           />
         </Routes>
