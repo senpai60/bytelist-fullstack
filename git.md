@@ -1,0 +1,1 @@
+The Metaverse repository provides a minimal setup for a React application using Vite, featuring hot module replacement (HMR) and ESLint integration. It includes essential dependencies for React and Tailwind CSS, along with a structured file organization for components and styles.

@@ -22,7 +22,7 @@ const app = express();
 
 connectDB();
 
-
+console.log("OPENAI_API_KEY:", process.env.OPENAI_API_KEY?.slice(0, 8))
 
 // === CORS === //
 const whitelist = [

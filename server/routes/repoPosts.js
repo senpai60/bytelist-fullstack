@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import axios from 'axios';
+import axios from "axios";
 
 import upload from "../middleware/multer.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -10,7 +10,7 @@ import verifyUser from "../middleware/verifyUser.js"; // Import the middleware
 
 import Task from "../models/Task.js";
 
-const SERVER_URI = process.env.SERVER_URI || "http://localhost:300"
+const SERVER_URI = process.env.SERVER_URI || "http://localhost:3000";
 
 router.get("/all-repo-posts", async (req, res) => {
   try {
@@ -69,19 +69,15 @@ router.post(
     if (taskId) {
       const task = await Task.findById(taskId);
       if (!task)
-        return res
-          .status(401)
-          .json({
-            message:
-              "No Task found :(  please try to add from the challenges section!",
-          });
+        return res.status(401).json({
+          message:
+            "No Task found :(  please try to add from the challenges section!",
+        });
       if (task.isPermanentlyDisabled)
-        return res
-          .status(401)
-          .json({
-            message:
-              "task permanently disabled because no attempts left or challenge ended :(",
-          });
+        return res.status(401).json({
+          message:
+            "task permanently disabled because no attempts left or challenge ended :(",
+        });
     }
 
     try {
@@ -117,8 +113,6 @@ router.post(
         });
       }
 
-      
-
       const newRepoPost = await RepoPost.create({
         user: req.user,
         title,
@@ -133,11 +127,15 @@ router.post(
       if (taskId) {
         await Task.findByIdAndUpdate(taskId, {
           isCompleted: true,
-          isPermanentlyDisabled:true,
-          completionPost: newRepoPost._id
-        })
-        const aiResponse = await axios.get(`${SERVER_URI}/ai/analyze-repo/${newRepoPost._id}`,{withCredentials:true})
-        console.log(aiResponse.data);
+          isPermanentlyDisabled: true,
+          completionPost: newRepoPost._id,
+        });
+        const aiResponse = await axios.post(
+          `${SERVER_URI}/ai/analyze-repo/${newRepoPost._id}`,
+          {}, // optional body (empty)
+          { withCredentials: true }
+        );
+        console.log(aiResponse);
         
       }
       res.status(201).json({ message: "successful", newRepoPost: newRepoPost });
