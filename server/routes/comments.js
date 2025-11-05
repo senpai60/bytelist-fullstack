@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 const router = express.Router();
 
 import Comment from "../models/Comment.js";
@@ -9,6 +10,11 @@ router.post("/:postId/comments", verifyUser, async (req, res) => {
   try {
     const { content, parentId } = req.body;
     const postId = req.params.postId;
+
+    // Validate postId to avoid Mongoose CastError (e.g. requests with numeric ids)
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({ error: "Invalid post id" });
+    }
 
     const comment = new Comment({
       content,
@@ -36,6 +42,11 @@ router.post("/:postId/comments", verifyUser, async (req, res) => {
 router.get("/:postId", verifyUser, async (req, res) => {
   const { postId } = req.params;
   try {
+    // If postId is not a valid ObjectId, return empty list instead of letting Mongoose throw
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(200).json([]);
+    }
+
     const comments = await Comment.find({ post: postId, parent: null }) // ✅ 1. ADD parent: null
       .sort({ createdAt: -1 }) // ✅ 2. ADD sorting
       .populate("author", "username avatar _id")

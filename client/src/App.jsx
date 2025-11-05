@@ -19,6 +19,7 @@ import ChallengeDetails from "./components/challenge/ChallengeDetails";
 import { TaskPage } from "./pages/TaskPage";
 import LeftMenu from "./components/layout/LeftMenu";
 import Profile from "./pages/Profile";
+import ViewTaskPost from "./pages/ViewTaskPost";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -141,6 +142,10 @@ function App() {
           <Route
             path="/view-playlist/:playlistId"
             element={<ViewPlaylistPage />}
+          />
+          <Route
+            path="/view-post-context/:repoId"
+            element={<ViewTaskPost />}
           />
         </Routes>
       </div>

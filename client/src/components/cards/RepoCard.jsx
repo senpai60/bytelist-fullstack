@@ -117,16 +117,24 @@ function RepoCard({ repoPost, user }) {
 
   // ✅ Like/Dislike setup
   useEffect(() => {
-    if (repoPost && user?._id) {
-      setLikes(repoPost.likes.length);
-      setDislikes(repoPost.dislike.length);
+    // Defensive handling: ensure likes/dislikes are arrays and field names match
+    if (!repoPost) return;
 
-      const userId = user._id.toString();
-      setLiked(repoPost.likes.some((id) => id.toString() === userId));
-      setDisliked(repoPost.dislike.some((id) => id.toString() === userId));
-    } else if (repoPost) {
-      setLikes(repoPost.likes.length);
-      setDislikes(repoPost.dislike.length);
+    const likesArr = Array.isArray(repoPost.likes) ? repoPost.likes : [];
+    const dislikesArr = Array.isArray(repoPost.dislikes)
+      ? repoPost.dislikes
+      : Array.isArray(repoPost.dislike)
+      ? repoPost.dislike
+      : [];
+
+    setLikes(likesArr.length);
+    setDislikes(dislikesArr.length);
+
+    const userId = user?._id ? user._id.toString() : null;
+    if (userId) {
+      setLiked(likesArr.some((id) => id.toString() === userId));
+      setDisliked(dislikesArr.some((id) => id.toString() === userId));
+    } else {
       setLiked(false);
       setDisliked(false);
     }
@@ -274,14 +282,27 @@ function RepoCard({ repoPost, user }) {
     }
   };
 
+  // Fetch RepoPostContextData
+  useEffect(() => {
+    const fetchRepoPostContext = async () => {
+      try {
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  }, []);
+
   return (
     <>
       <Card
-        onClick={handleRepoPageNavigation}
-        className="overflow-hidden w-full md:w-80 rounded-2xl border border-zinc-800 bg-zinc-900/60 text-zinc-100 shadow-md hover:shadow-zinc-800/40 hover:-translate-y-1 cursor-pointer"
+        onClick={() => {
+          if (repoPost?.taskId === null) {
+            handleRepoPageNavigation();
+          } else {
+            navigate(`/view-post-context/${repoPost?._id}`);
+          }
+        }}
       >
-        
-
         {/* IMAGE */}
         <div className="h-40 w-full overflow-hidden bg-zinc-900">
           <img
@@ -338,15 +359,15 @@ function RepoCard({ repoPost, user }) {
         </CardHeader>
 
         <CardContent>
-          {
-          repoPost?.taskId!==null && (<Badge
-          key={repoPost?.taskId}
-          variant="secondary"
-          className="bg-zinc-800 mb-2 text-yellow-300 border border-zinc-700 text-xs"
-        >
-          Post From Challenge🏆
-        </Badge>)
-        }
+          {repoPost?.taskId !== null && (
+            <Badge
+              key={repoPost?.taskId}
+              variant="secondary"
+              className="bg-zinc-800 mb-2 text-yellow-300 border border-zinc-700 text-xs"
+            >
+              Post From Challenge🏆
+            </Badge>
+          )}
           <div className="flex flex-wrap gap-2">
             {repoPost?.tags?.map((tag) => (
               <Badge
