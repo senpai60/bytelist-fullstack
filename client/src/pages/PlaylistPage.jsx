@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -7,20 +7,20 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Globe, Folder, Bookmark, Play } from "lucide-react";
+import { Globe, Folder, Bookmark, Play, Plus } from "lucide-react";
+import CreatePlaylist from "@/components/playlist/CreatePlaylist";
+
+import { playlistsApi } from "../api/playlistsApi";
 
 const PlaylistPage = () => {
   const [activeTab, setActiveTab] = useState("public");
+  const [showCreate, setShowCreate] = useState(false);
   const navigate = useNavigate();
+
+  const [myPlaylists, setMyPlaylists] = useState([]);
 
   const publicPlaylists = [
     {
@@ -39,31 +39,52 @@ const PlaylistPage = () => {
     },
   ];
 
-  const myPlaylists = [
-    {
-      id: 3,
-      title: "Game Dev Journey",
-      description: "Unity & C# learning path for solo devs.",
-      tags: ["unity", "csharp", "gamedev"],
-      creator: "me",
-    },
-    {
-      id: 4,
-      title: "Web Dev Practice",
-      description: "My collection of full-stack apps.",
-      tags: ["mern", "auth", "projects"],
-      creator: "me",
-    },
-  ];
+const fetchMyPlaylists = async () => {
+  try {
+    const response = await playlistsApi.get("/my");
+    if (response.data) {
+      const myPlaylistsList = response.data?.myPlaylists.map((playlist) => ({
+        ...playlist,
+        id: playlist._id,
+      }));
+      setMyPlaylists(myPlaylistsList); // ✅ overwrite instead of append
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+  useEffect(() => {fetchMyPlaylists()}, []);
 
   const handleViewPlaylist = (id) => {
     navigate(`/view-playlist/${id}`);
   };
 
+  const handleCreatePlaylist = async (newPlaylist) => {
+    try {
+      const response = await playlistsApi.post("/create", {
+        playlistName: newPlaylist.title,
+        description: newPlaylist.description,
+        tags: newPlaylist.tags,
+      });
+      if (response.data) fetchMyPlaylists()
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-zinc-950 text-zinc-100 p-8">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-zinc-100">🎧 Playlists</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-zinc-100">🎧 Playlists</h1>
+          <Button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 bg-white text-black hover:bg-zinc-200 font-medium"
+          >
+            <Plus size={18} /> Create Playlist
+          </Button>
+        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex gap-4 mb-6 bg-zinc-900 p-2 rounded-2xl border border-zinc-800">
@@ -92,10 +113,7 @@ const PlaylistPage = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between text-zinc-100">
                       <span>{p.title}</span>
-                      <Badge
-                        variant="secondary"
-                        className="bg-zinc-800 text-zinc-400 border border-zinc-700"
-                      >
+                      <Badge className="bg-zinc-800 text-zinc-400 border border-zinc-700">
                         {p.creator}
                       </Badge>
                     </CardTitle>
@@ -137,11 +155,8 @@ const PlaylistPage = () => {
                 >
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between text-zinc-100">
-                      <span>{p.title}</span>
-                      <Badge
-                        variant="secondary"
-                        className="bg-zinc-800 text-zinc-400 border border-zinc-700"
-                      >
+                      <span className="capitalize text-[greenyellow]">{p.playlistName}</span>
+                      <Badge className="bg-zinc-800 text-zinc-400 border border-zinc-700">
                         Mine
                       </Badge>
                     </CardTitle>
@@ -181,6 +196,14 @@ const PlaylistPage = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* 🔥 Create Playlist Modal */}
+        {showCreate && (
+          <CreatePlaylist
+            onClose={() => setShowCreate(false)}
+            onCreate={handleCreatePlaylist}
+          />
+        )}
       </div>
     </div>
   );

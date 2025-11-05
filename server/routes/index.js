@@ -11,6 +11,7 @@ import updateAchievementsRoute from "./achievementsUpdate.js"
 import commentsRoute from './comments.js'
 import challengeRoute from './challenges.js'
 import taskRoute from './tasks.js'
+import playlistsRoute from './playlists.js'
 
 
 
@@ -103,6 +104,7 @@ router.use("/update-achievements",updateAchievementsRoute)
 router.use('/comments',commentsRoute)
 router.use('/challenges',challengeRoute)
 router.use('/tasks',taskRoute)
+router.use('/playlists',playlistsRoute)
 
 export default router;
 //===AFK===
