@@ -295,6 +295,7 @@ function RepoCard({ repoPost, user }) {
   return (
     <>
       <Card
+      className="bg-gradient-to-br from-zinc-900 to-zinc-950"
         onClick={() => {
           if (repoPost?.taskId === null) {
             handleRepoPageNavigation();

@@ -4,13 +4,12 @@ import axios from "axios";
 
 import upload from "../middleware/multer.js";
 import { v2 as cloudinary } from "cloudinary";
+import { scheduleRepoAnalysis } from "../utils/scheduleRepoAnalysis.js";
 
 import RepoPost from "../models/RepoPost.js";
 import verifyUser from "../middleware/verifyUser.js"; // Import the middleware
 
 import Task from "../models/Task.js";
-
-const SERVER_URI = process.env.SERVER_URI || "http://localhost:3000";
 
 router.get("/all-repo-posts", async (req, res) => {
   try {
@@ -130,13 +129,8 @@ router.post(
           isPermanentlyDisabled: true,
           completionPost: newRepoPost._id,
         });
-        const aiResponse = await axios.post(
-          `${SERVER_URI}/ai/analyze-repo/${newRepoPost._id}`,
-          {}, // optional body (empty)
-          { withCredentials: true }
-        );
-        console.log(aiResponse);
-        
+
+        scheduleRepoAnalysis(newRepoPost._id);
       }
       res.status(201).json({ message: "successful", newRepoPost: newRepoPost });
     } catch (err) {
