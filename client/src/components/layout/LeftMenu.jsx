@@ -30,7 +30,7 @@ function LeftMenu({ handleLogout,isLoggedIn }) {
 
   return (
     <>
-    <nav className="hidden md:flex md:flex-col">
+    <nav className="hidden md:flex md:flex-col bg-zinc-950">
       {/* ===== Logo ===== */}
       <div className="logo mt-4">
         <img src="/images/btye-list.png" alt="Logo" />
