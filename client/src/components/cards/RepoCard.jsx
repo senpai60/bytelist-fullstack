@@ -351,7 +351,7 @@ function RepoCard({ repoPost, user }) {
             </div>
           </div>
 
-          <CardTitle className="text-lg font-semibold line-clamp-1">
+          <CardTitle className="text-lg font-semibold line-clamp-1 text-white">
             {repoPost?.title || "Untitled Project"}
           </CardTitle>
           <CardDescription className="text-sm text-zinc-400 line-clamp-2">
@@ -432,7 +432,7 @@ function RepoCard({ repoPost, user }) {
         </CardContent>
 
         {/* ✅ Bottom buttons (archive moved here) */}
-        <CardFooter className="flex items-center justify-between border-t border-zinc-800 px-3 py-2">
+        <CardFooter className="flex items-center text-zinc-400 justify-between border-t border-zinc-800 px-3 py-2">
           <div className="flex items-center gap-2.5">
             {/* ARCHIVE ICON ONLY */}
             <Button

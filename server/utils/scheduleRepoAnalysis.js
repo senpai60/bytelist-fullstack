@@ -6,7 +6,7 @@ const SERVER_URI = process.env.SERVER_URI || "http://localhost:3000";
 export async function triggerAIAnalysis(repoPostId, attempt = 1) {
   try {
     console.log(`Attempt ${attempt} → Analyzing repo ${repoPostId}`);
-    await axios.post(`${SERVER_URI}/ai/${repoPostId}`, {}, { timeout: 60000 });
+    await axios.post(`${SERVER_URI}/ai/${repoPostId}`, {}, { timeout: 2 * 60 * 1000 });
     console.log(`✅ AI analysis success for repo ${repoPostId}`);
   } catch (err) {
     const status = err.response?.status;
@@ -26,5 +26,5 @@ export async function triggerAIAnalysis(repoPostId, attempt = 1) {
 // Schedule AI after 5 minutes
 export function scheduleRepoAnalysis(repoPostId) {
   console.log(`⏳ Scheduled AI analysis for repo ${repoPostId} in 5 min`);
-  setTimeout(() => triggerAIAnalysis(repoPostId), 5 * 60 * 1000);
+  setTimeout(() => triggerAIAnalysis(repoPostId), 1 * 60 * 1000);
 }
