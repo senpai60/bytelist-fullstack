@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // You'll need react-router-dom
-import axios from "axios"; // ✅ Import axios
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
-// --- Component Imports ---
 import BentoBox from "../components/view_post/BentoBox";
 import ScoreDisplay from "../components/view_post/ScoreDisplay";
 import FeedbackList from "../components/view_post/FeedbackList";
 import MetricsGrid from "../components/view_post/MetricsGrid";
 import PrimaryLoader from "../components/loaders/PrimaryLoader";
 
-// ✅ Define the SERVER_URI from environment variables
-// Note: In Vite, env variables must be prefixed with VITE_ to be exposed to the client.
-const SERVER_URI =
-  import.meta.env.VITE_SERVER_URI || "http://localhost:3000";
+const SERVER_URI = import.meta.env.VITE_SERVER_URI || "http://localhost:3000";
 
-// --- Icons ---
 const LinkIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -32,14 +27,6 @@ const LinkIcon = () => (
   </svg>
 );
 
-// --- Loading & Error Components ---
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center h-screen bg-zinc-950">
-    <div className="w-16 h-16 border-4 border-lime-300 border-t-transparent rounded-full animate-spin"></div>
-    <p className="ml-4 text-lg text-zinc-100">Loading Analysis...</p>
-  </div>
-);
-
 const ErrorDisplay = ({ message }) => (
   <div className="flex items-center justify-center h-screen bg-zinc-950 p-8">
     <div className="p-6 text-center border rounded-lg bg-zinc-900 border-red-500/50">
@@ -49,75 +36,75 @@ const ErrorDisplay = ({ message }) => (
   </div>
 );
 
-// --- Main Page Component ---
 const ViewTaskPost = () => {
-  const { repoPostId } = useParams(); // Get the ID from the URL
+  const { repoPostId } = useParams();
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filteredSummary, setFilteredSummary] = useState("");
 
+  // -------------------------------------------------------
+  // 1️⃣ FETCH AI CONTEXT
+  // -------------------------------------------------------
   useEffect(() => {
     const fetchContextData = async () => {
       setLoading(true);
       setError(null);
+
       try {
-        // ✅ Construct the URL using your route and SERVER_URI
         const url = `${SERVER_URI}/ai/repo-context/${repoPostId}`;
-
-        // ✅ Use axios.get to fetch the data
         const res = await axios.get(url);
-
-        // ✅ Set data from the response (axios nests data in `res.data`)
         setData(res.data.repoPostContext);
       } catch (err) {
         console.error("Fetch error:", err);
-
-        // ✅ Handle axios errors
-        if (err.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          setError(
-            err.response.data.message ||
-              `An error occurred: ${err.response.status}`
-          );
-        } else if (err.request) {
-          // The request was made but no response was received
-          setError("Could not connect to the server. Please try again.");
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          setError(err.message);
-        }
+        setError("Failed to load AI analysis.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (repoPostId) {
-      fetchContextData();
-    }
-  }, [repoPostId]); // Dependency array remains the same
+    if (repoPostId) fetchContextData();
+  }, [repoPostId]);
 
-  // --- Render Loading State ---
-  if (loading) {
-    return <PrimaryLoader />;
-  }
+  // -------------------------------------------------------
+  // 2️⃣ FORMAT SUMMARY — MUST BE BEFORE CONDITIONAL RETURNS
+  // -------------------------------------------------------
+  useEffect(() => {
+    if (!data?.aiSummary) return;
 
-  // --- Render Error State ---
-  if (error) {
-    return <ErrorDisplay message={error} />;
-  }
+    let text = data.aiSummary;
 
-  // --- Render Data State ---
-  if (!data) {
-    return <ErrorDisplay message="No data was found." />;
-  }
+    text = text.replace(
+      /### (.*)/g,
+      "<h2 class='text-xl font-semibold mt-4 mb-2'>$1</h2>"
+    );
 
-  // Destructure the data from the API response
+    text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    text = text.replace(/- (.*)/g, "<li>$1</li>");
+    text = text.replace(
+      /(<li>[\s\S]*?<\/li>)/g,
+      "<ul class='list-disc ml-6'>$1</ul>"
+    );
+
+    text = text.replace(/\n\n/g, "<br /><br />");
+
+    setFilteredSummary(text);
+  }, [data]);
+
+  // -------------------------------------------------------
+  // 3️⃣ CONDITIONAL RENDER (SAFE NOW)
+  // -------------------------------------------------------
+  if (loading) return <PrimaryLoader />;
+  if (error) return <ErrorDisplay message={error} />;
+  if (!data) return <ErrorDisplay message="No data was found." />;
+
+  // Data destructuring AFTER hooks
   const {
-    repoPost, // This contains title, tags, githubUrl, liveUrl
-    user, // This contains username, avatar
+    repoPost,
+    user,
     overallScore,
-    aiSummary,
     metrics,
     strengths,
     suggestions,
@@ -125,13 +112,16 @@ const ViewTaskPost = () => {
     codeStyleFeedback,
   } = data;
 
+  // -------------------------------------------------------
+  // 4️⃣ UI SECTION - UNCHANGED
+  // -------------------------------------------------------
   return (
     <div className="min-h-screen p-4 md:p-8 bg-zinc-950 text-zinc-100">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-fr">
-        {/* Box 1: Post Header */}
+        
+        {/* Post Header */}
         <BentoBox className="lg:col-span-2">
           <div className="flex flex-col justify-between h-full">
-            {/* User Info */}
             <div className="flex items-center gap-3 mb-4">
               <img
                 src={user.avatar || "https://avatar.vercel.sh/" + user.username}
@@ -145,12 +135,8 @@ const ViewTaskPost = () => {
             </div>
 
             <div>
-              <h1 className="text-3xl font-bold text-zinc-100">
-                {repoPost.title}
-              </h1>
-              <p className="">
-                {repoPost.description}
-              </p>
+              <h1 className="text-3xl font-bold text-zinc-100">{repoPost.title}</h1>
+              <p>{repoPost.description}</p>
               <div className="flex flex-wrap gap-2 mt-3">
                 {repoPost.tags.map((tag) => (
                   <span
@@ -167,17 +153,16 @@ const ViewTaskPost = () => {
               <a
                 href={repoPost.githubUrl}
                 target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors rounded-lg bg-zinc-800 text-zinc-100 hover:bg-zinc-700"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg bg-zinc-800 text-zinc-100 hover:bg-zinc-700"
               >
                 <LinkIcon /> GitHub
               </a>
+
               {repoPost.liveUrl && (
                 <a
                   href={repoPost.liveUrl}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-black transition-colors rounded-lg bg-lime-300 hover:bg-lime-400"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg bg-lime-300 text-black hover:bg-lime-400"
                 >
                   <LinkIcon /> Live Demo
                 </a>
@@ -186,52 +171,39 @@ const ViewTaskPost = () => {
           </div>
         </BentoBox>
 
-        {/* Box 2: Overall Score */}
+        {/* Score */}
         <BentoBox className="lg:row-span-1">
           <ScoreDisplay score={overallScore} />
         </BentoBox>
 
-        {/* Box 3: AI Summary */}
+        {/* AI Summary */}
         <BentoBox className="lg:col-span-3">
-          <h3 className="mb-3 text-lg font-semibold text-zinc-100">
-            AI Summary
-          </h3>
-          <p className="text-zinc-300">{aiSummary}</p>
+          <h3 className="mb-3 text-lg font-semibold text-zinc-100">AI Summary</h3>
+          <div
+            className="prose prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: filteredSummary }}
+          ></div>
         </BentoBox>
 
-        {/* Box 4: Metrics */}
+        {/* Metrics */}
         <BentoBox className="lg:col-span-2 lg:row-span-2">
           <MetricsGrid metrics={metrics} />
         </BentoBox>
 
-        {/* Box 5: Strengths */}
+        {/* Lists */}
         <BentoBox>
-          <FeedbackList
-            title="Strengths"
-            items={strengths}
-            type="strengths"
-          />
+          <FeedbackList title="Strengths" items={strengths} type="strengths" />
         </BentoBox>
 
-        {/* Box 6: Suggestions */}
         <BentoBox>
-          <FeedbackList
-            title="Suggestions"
-            items={suggestions}
-            type="suggestions"
-          />
+          <FeedbackList title="Suggestions" items={suggestions} type="suggestions" />
         </BentoBox>
 
-        {/* Box 7: Improvements */}
         <BentoBox>
-          <FeedbackList
-            title="Improvements"
-            items={improvements}
-            type="suggestions"
-          />
+          <FeedbackList title="Improvements" items={improvements} type="suggestions" />
         </BentoBox>
 
-        {/* Box 8: Code Style Feedback */}
+        {/* Code Style */}
         <BentoBox>
           <h3 className="mb-4 text-lg font-semibold text-zinc-100">
             Code Style Feedback
@@ -239,10 +211,8 @@ const ViewTaskPost = () => {
           <ul className="space-y-3">
             {Object.entries(codeStyleFeedback).map(([key, value]) => (
               <li key={key} className="text-sm">
-                <span className="font-semibold text-zinc-100 capitalize">
-                  {key}:
-                </span>
-                <span className="ml-2 text-zinc-300">{value}</span>
+                <span className="font-semibold capitalize">{key}:</span>{" "}
+                <span className="text-zinc-300">{value}</span>
               </li>
             ))}
           </ul>
